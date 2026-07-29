@@ -6,9 +6,6 @@
   <title>Muzo Hukuk - 3. Sınıf</title>
 
   <!-- PWA -->
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-  <meta http-equiv="Pragma" content="no-cache">
-  <meta http-equiv="Expires" content="0">
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#1C2B4A">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -44,86 +41,37 @@
 
     const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 
-    // Safe Storage Adapter (localStorage) — bu dosya doğrudan tarayıcıda açıldığında çalışır
+    // Safe Storage Adapter (localStorage)
     const storageAdapter = {
       async get(key) {
-        try {
-          const val = localStorage.getItem(key);
-          return val ? { value: val } : null;
-        } catch (e) {
-          return null;
-        }
+        try { const val = localStorage.getItem(key); return val ? { value: val } : null; } catch (e) { return null; }
       },
       async set(key, value) {
-        try {
-          localStorage.setItem(key, value);
-        } catch (e) {}
+        try { localStorage.setItem(key, value); } catch (e) {}
       },
     };
 
     const COURSES = [
-      "Vergi Hukuku",
-      "Ceza Hukuku (Özel Hükümler)",
-      "Borçlar Hukuku (Özel Hükümler)",
-      "Medeni Usul Hukuku",
-      "Ticaret Hukuku",
-      "İdari Yargılama Hukuku",
-      "Eşya Hukuku",
+      "Vergi Hukuku", "Ceza Hukuku (Özel Hükümler)", "Borçlar Hukuku (Özel Hükümler)",
+      "Medeni Usul Hukuku", "Ticaret Hukuku", "İdari Yargılama Hukuku", "Eşya Hukuku",
     ];
 
     const WEEKDAY_ORDER = ["Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi", "Pazar"];
-    const WEEKDAY_BY_INDEX = ["Pazar", "Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi"]; // JS Date.getDay(): 0=Pazar
+    const WEEKDAY_BY_INDEX = ["Pazar", "Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi"];
 
     const LAWS = [
-      {
-        code: "TMK",
-        title: "Türk Medeni Kanunu",
-        note: "4721 sayılı — kişiler, aile, miras ve eşya hukuku (1030 madde)",
-        url: "https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=4721&MevzuatTur=1&MevzuatTertip=5",
-      },
-      {
-        code: "TBK",
-        title: "Türk Borçlar Kanunu",
-        note: "6098 sayılı — borç ilişkileri, sözleşmeler, haksız fiil",
-        url: "https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=6098&MevzuatTur=1&MevzuatTertip=5",
-      },
-      {
-        code: "TCK",
-        title: "Türk Ceza Kanunu",
-        note: "5237 sayılı — suçlar, cezalar ve güvenlik tedbirleri",
-        url: "https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=5237&MevzuatTur=1&MevzuatTertip=5",
-      },
+      { code: "TMK", title: "Türk Medeni Kanunu", note: "4721 sayılı — kişiler, aile, miras ve eşya hukuku (1030 madde)", url: "https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=4721&MevzuatTur=1&MevzuatTertip=5" },
+      { code: "TBK", title: "Türk Borçlar Kanunu", note: "6098 sayılı — borç ilişkileri, sözleşmeler, haksız fiil", url: "https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=6098&MevzuatTur=1&MevzuatTertip=5" },
+      { code: "TCK", title: "Türk Ceza Kanunu", note: "5237 sayılı — suçlar, cezalar ve güvenlik tedbirleri", url: "https://www.mevzuat.gov.tr/mevzuat?MevzuatNo=5237&MevzuatTur=1&MevzuatTertip=5" },
     ];
 
     const SEED_CARDS = [
-      {
-        id: uid(),
-        topic: "Eşya Hukuku",
-        front: "Zilyetlik türleri nelerdir ve dolaysız zilyetlik ne anlama gelir?",
-        back: "Zilyetlik; asli-fer'i, dolaylı-dolaysız ve tek başına-birlikte zilyetlik olarak ayrılır. Fiili hakimiyeti doğrudan doğruya kullanan kişi dolaysız zilyettir (örneğin kiracı).",
-        level: 0,
-        lastReviewed: null,
-      },
-      {
-        id: uid(),
-        topic: "Borçlar Hukuku (Özel)",
-        front: "Satış sözleşmesinde satıcının ayıptan sorumluluğunun şartları nelerdir?",
-        back: "1. Malın ayıplı olması, 2. Ayıbın hasarın geçtiği anda var olması, 3. Alıcının ayıbı bilmemesi, 4. Alıcının muayene ve ihbar külfetini yerine getirmiş olması.",
-        level: 0,
-        lastReviewed: null,
-      },
+      { id: uid(), topic: "Eşya Hukuku", front: "Zilyetlik türleri nelerdir ve dolaysız zilyetlik ne anlama gelir?", back: "Zilyetlik; asli-fer'i, dolaylı-dolaysız ve tek başına-birlikte zilyetlik olarak ayrılır. Fiili hakimiyeti doğrudan doğruya kullanan kişi dolaysız zilyettir (örneğin kiracı).", level: 0, lastReviewed: null },
+      { id: uid(), topic: "Borçlar Hukuku (Özel)", front: "Satış sözleşmesinde satıcının ayıptan sorumluluğunun şartları nelerdir?", back: "1. Malın ayıplı olması, 2. Ayıbın hasarın geçtiği anda var olması, 3. Alıcının ayıbı bilmemesi, 4. Alıcının muayene ve ihbar külfetini yerine getirmiş olması.", level: 0, lastReviewed: null },
     ];
 
     const SEED_CASES = [
-      {
-        id: uid(),
-        course: "Eşya Hukuku",
-        title: "Tapuda Çift Kayıt ve İyiniyetli Üçüncü Kişi",
-        factPattern: "(A), adına tapuda kayıtlı taşınmazı (B)'ye satmış fakat tescil yapılmamıştır. Yolsuz tescilden yararlanan (C) ise taşınmazı iyi niyetle (D)'ye devretmiştir.",
-        legalIssue: "(D)'nin iktisabı TMK m. 1023 kapsamında korunur mu?",
-        statute: "TMK m. 1023, TMK m. 1024",
-        solution: "TMK m. 1023 uyarınca tapu kütüğündeki tescile iyiniyetle dayanarak ayni hak kazanan üçüncü kişinin bu kazanımı korunur. (D) iyiniyetli olduğu için mülkiyeti kazanır.",
-      },
+      { id: uid(), course: "Eşya Hukuku", title: "Tapuda Çift Kayıt ve İyiniyetli Üçüncü Kişi", factPattern: "(A), adına tapuda kayıtlı taşınmazı (B)'ye satmış fakat tescil yapılmamıştır. Yolsuz tescilden yararlanan (C) ise taşınmazı iyi niyetle (D)'ye devretmiştir.", legalIssue: "(D)'nin iktisabı TMK m. 1023 kapsamında korunur mu?", statute: "TMK m. 1023, TMK m. 1024", solution: "TMK m. 1023 uyarınca tapu kütüğündeki tescile iyiniyetle dayanarak ayni hak kazanan üçüncü kişinin bu kazanımı korunur. (D) iyiniyetli olduğu için mülkiyeti kazanır." },
     ];
 
     const SEED_DICTIONARY = [
@@ -132,77 +80,57 @@
       { id: uid(), term: "İlliyet Bağı", definition: "Neden-sonuç ilişkisi. Haksız fiillerde zarar ile fiil arasındaki bağ." },
     ];
 
-    // Gün Hesaplama Fonksiyonu
     const getDaysLeft = (targetDateStr) => {
-      const now = new Date();
-      const target = new Date(targetDateStr);
-      now.setHours(0, 0, 0, 0);
-      target.setHours(0, 0, 0, 0);
-      const diffTime = target - now;
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      const now = new Date(); const target = new Date(targetDateStr);
+      now.setHours(0, 0, 0, 0); target.setHours(0, 0, 0, 0);
+      const diffTime = target - now; const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
       return diffDays > 0 ? diffDays : 0;
     };
 
-    // Google Drive paylaşım linkini uygulama içinde gömülebilir (iframe) linke çevirir
     const getDriveEmbedUrl = (url) => {
       if (!url || !url.includes("drive.google.com")) return null;
       const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
-      if (!match) return null;
-      return `https://drive.google.com/file/d/${match[1]}/preview`;
+      if (!match) return null; return `https://drive.google.com/file/d/${match[1]}/preview`;
     };
 
-    // Kanun notları için anlamlı renk etiketleri
     const NOTE_COLORS = [
-      { key: "none", label: "Etiketsiz", color: "#D9CFB8" },
-      { key: "onemli", label: "Önemli", color: "#B8923F" },
-      { key: "sinav", label: "Sınavda çıkar", color: "#7C2D3B" },
-      { key: "karistiriyorum", label: "Karıştırıyorum", color: "#A6432F" },
+      { key: "none", label: "Etiketsiz", color: "#D9CFB8" }, { key: "onemli", label: "Önemli", color: "#B8923F" },
+      { key: "sinav", label: "Sınavda çıkar", color: "#7C2D3B" }, { key: "karistiriyorum", label: "Karıştırıyorum", color: "#A6432F" },
       { key: "ogrendim", label: "Öğrendim", color: "#4C6B4F" },
     ];
-
     const getNoteColor = (key) => (NOTE_COLORS.find((c) => c.key === key) || NOTE_COLORS[0]).color;
-
     const COURTS = ["Yargıtay", "Danıştay", "Anayasa Mahkemesi", "BAM", "Diğer"];
 
-    // Kanun kısaltmalarını tek biçime indirger (MK -> TMK gibi)
-    const CODE_ALIASES = {
-      TMK: "TMK", MK: "TMK",
-      TBK: "TBK", BK: "TBK",
-      TCK: "TCK", CK: "TCK",
-      HMK: "HMK", IYUK: "İYUK", KMK: "KMK", TTK: "TTK", VUK: "VUK", IIK: "İİK",
-    };
+    const CODE_ALIASES = { TMK: "TMK", MK: "TMK", TBK: "TBK", BK: "TBK", TCK: "TCK", CK: "TCK", HMK: "HMK", IYUK: "İYUK", KMK: "KMK", TTK: "TTK", VUK: "VUK", IIK: "İİK" };
 
-    // Metinden madde referanslarını çıkarır: "TMK m. 683" -> "TMK 683"
     const parseArticleRefs = (text, defaultCode) => {
-      if (!text) return [];
-      const found = new Set();
-      const up = String(text)
-        .toUpperCase()
-        .replace(/İ/g, "I").replace(/Ş/g, "S").replace(/Ğ/g, "G")
-        .replace(/Ü/g, "U").replace(/Ö/g, "O").replace(/Ç/g, "C");
-
-      const withCode = /\b(TMK|TBK|TCK|HMK|IYUK|KMK|TTK|VUK|IIK|MK|BK|CK)\b[\s.]*(?:MADDE|M)?[\s.]*(\d{1,4})/g;
-      let m;
-      while ((m = withCode.exec(up)) !== null) {
-        const code = CODE_ALIASES[m[1]] || m[1];
-        found.add(code + " " + m[2]);
-      }
-
+      if (!text) return []; const found = new Set();
+      const up = String(text).toUpperCase().replace(/İ/g, "I").replace(/Ş/g, "S").replace(/Ğ/g, "G").replace(/Ü/g, "U").replace(/Ö/g, "O").replace(/Ç/g, "C");
+      const withCode = /\b(TMK|TBK|TCK|HMK|IYUK|KMK|TTK|VUK|IIK|MK|BK|CK)\b[\s.]*(?:MADDE|M)?[\s.]*(\d{1,4})/g; let m;
+      while ((m = withCode.exec(up)) !== null) { const code = CODE_ALIASES[m[1]] || m[1]; found.add(code + " " + m[2]); }
       if (defaultCode) {
         const noCode = /(?:^|[^A-Z0-9])(?:MADDE|M)[\s.]+(\d{1,4})/g;
-        while ((m = noCode.exec(up)) !== null) {
-          found.add(defaultCode + " " + m[1]);
-        }
+        while ((m = noCode.exec(up)) !== null) { found.add(defaultCode + " " + m[1]); }
       }
       return Array.from(found);
     };
 
     const sortArticleRefs = (a, b) => {
-      const [ca, na] = a.split(" ");
-      const [cb, nb] = b.split(" ");
-      if (ca !== cb) return ca.localeCompare(cb, "tr");
-      return parseInt(na, 10) - parseInt(nb, 10);
+      const [ca, na] = a.split(" "); const [cb, nb] = b.split(" ");
+      if (ca !== cb) return ca.localeCompare(cb, "tr"); return parseInt(na, 10) - parseInt(nb, 10);
     };
+
+    // Push Notifications Logic
+    const WORK_MSGS = [
+      "Süre doldu! Harika bir odaklanmaydı, şimdi kısa bir dinlenme vakti.",
+      "Zaman bitti! Bir bardak su iç ve gözlerini ekrandan/kitaptan ayır.",
+      "Hedefine bir adım daha yaklaştın. Şimdi derin bir nefes al ve mola ver!"
+    ];
+    const BREAK_MSGS = [
+      "Mola bitti! Hayallerin ve hedeflerin için tekrar masaya dönme vakti.",
+      "Dinlenme süren doldu. Hadi o konuyu bitirelim, odaklan!",
+      "Kitaplar seni bekliyor, geleceğin için çalışmaya devam!"
+    ];
 
     function HukukFisleri() {
       const [loading, setLoading] = useState(true);
@@ -235,11 +163,9 @@
       const [queueIds, setQueueIds] = useState([]);
       const [cursor, setCursor] = useState(0);
       const [flipped, setFlipped] = useState(false);
-
       const [quizMode, setQuizMode] = useState(false);
       const [quiz, setQuiz] = useState(null);
 
-      // Haftalık program state'i: obj[day] = [{id, course, time, location}]
       const [weeklyPlan, setWeeklyPlan] = useState({});
       const [expandedDay, setExpandedDay] = useState(null);
 
@@ -278,29 +204,25 @@
       const [dictSearch, setDictSearch] = useState("");
 
       // Pomodoro States
-      const [showPomodoro, setShowPomodoro] = useState(false);
+      const [pomoSettings, setPomoSettings] = useState({ work: 25, break: 5 });
+      const [pomoSettingsDraft, setPomoSettingsDraft] = useState({ work: 25, break: 5 });
       const [pomoMinutes, setPomoMinutes] = useState(25);
       const [pomoSeconds, setPomoSeconds] = useState(0);
       const [pomoIsRunning, setPomoIsRunning] = useState(false);
-      const [pomoMode, setPomoMode] = useState("work"); // work | break
+      const [pomoMode, setPomoMode] = useState("work"); 
+      const [notificationGranted, setNotificationGranted] = useState(false);
 
-      // Sınav Tarihleri Hesaplaması
       const currentYear = new Date().getFullYear();
       const defaultVizeDateStr = `${currentYear}-12-28`;
-      const finalYear = new Date().getMonth() >= 6 ? currentYear + 1 : currentYear;
-      const defaultFinalDateStr = `${finalYear}-06-01`;
+      const defaultFinalDateStr = `${new Date().getMonth() >= 6 ? currentYear + 1 : currentYear}-06-01`;
 
       const vizeDateStr = examDates.vize || defaultVizeDateStr;
       const finalDateStr = examDates.final || defaultFinalDateStr;
-
       const vizeDays = useMemo(() => getDaysLeft(vizeDateStr), [vizeDateStr]);
       const finalDays = useMemo(() => getDaysLeft(finalDateStr), [finalDateStr]);
 
       const formatDateLabel = (dateStr) => {
-        try {
-          const d = new Date(dateStr + "T00:00:00");
-          return d.toLocaleDateString("tr-TR", { day: "numeric", month: "long" });
-        } catch (e) { return dateStr; }
+        try { const d = new Date(dateStr + "T00:00:00"); return d.toLocaleDateString("tr-TR", { day: "numeric", month: "long" }); } catch (e) { return dateStr; }
       };
 
       const dailyTarget = 10;
@@ -310,29 +232,20 @@
       }, [cards]);
 
       const studyDaysSet = useMemo(() => {
-        const set = new Set();
-        cards.forEach((c) => { if (c.lastReviewed) set.add(c.lastReviewed.split("T")[0]); });
-        return set;
+        const set = new Set(); cards.forEach((c) => { if (c.lastReviewed) set.add(c.lastReviewed.split("T")[0]); }); return set;
       }, [cards]);
 
       const currentStreak = useMemo(() => {
-        let streak = 0;
-        let d = new Date();
-        const todayStr = d.toISOString().split("T")[0];
+        let streak = 0; let d = new Date(); const todayStr = d.toISOString().split("T")[0];
         if (!studyDaysSet.has(todayStr)) d.setDate(d.getDate() - 1);
-        while (studyDaysSet.has(d.toISOString().split("T")[0])) {
-          streak++;
-          d.setDate(d.getDate() - 1);
-        }
+        while (studyDaysSet.has(d.toISOString().split("T")[0])) { streak++; d.setDate(d.getDate() - 1); }
         return streak;
       }, [studyDaysSet]);
 
       const last7Days = useMemo(() => {
         const days = [];
         for (let i = 6; i >= 0; i--) {
-          const d = new Date();
-          d.setDate(d.getDate() - i);
-          const dStr = d.toISOString().split("T")[0];
+          const d = new Date(); d.setDate(d.getDate() - i); const dStr = d.toISOString().split("T")[0];
           const count = cards.filter((c) => c.lastReviewed && c.lastReviewed.startsWith(dStr)).length;
           days.push({ label: d.toLocaleDateString("tr-TR", { weekday: "short" }), count, isToday: i === 0 });
         }
@@ -340,102 +253,69 @@
       }, [cards]);
 
       const todayWeekdayName = WEEKDAY_BY_INDEX[new Date().getDay()];
+      const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(null), 3000); };
 
-      const showToast = (msg) => {
-        setToast(msg);
-        setTimeout(() => setToast(null), 3000);
+      useEffect(() => {
+        if ("Notification" in window) {
+          setNotificationGranted(Notification.permission === "granted");
+        }
+      }, []);
+
+      const requestNotificationPermission = () => {
+        if (!("Notification" in window)) {
+          showToast("Tarayıcınız bildirimleri desteklemiyor.");
+          return;
+        }
+        Notification.requestPermission().then(permission => {
+          if (permission === "granted") {
+            setNotificationGranted(true);
+            showToast("Harika! Artık süre bitiminde bildirim alacaksın.");
+          } else {
+            showToast("Bildirimlere izin verilmedi.");
+          }
+        });
+      };
+
+      const sendPomoNotification = (title, body) => {
+        if ("Notification" in window && Notification.permission === "granted") {
+          new Notification(title, { body, icon: "icon-192.png" });
+        }
       };
 
       useEffect(() => {
         (async () => {
-          let loadedCards = SEED_CARDS;
-          let loadedResources = {};
-          let loadedCases = SEED_CASES;
-          let loadedLawNotes = {};
-          let loadedExamDates = { vize: "", final: "" };
-          let loadedWeeklyPlan = {};
-          let loadedPrecedents = [];
-          let loadedDictionary = SEED_DICTIONARY;
+          let loadedCards = SEED_CARDS; let loadedResources = {}; let loadedCases = SEED_CASES; let loadedLawNotes = {};
+          let loadedExamDates = { vize: "", final: "" }; let loadedWeeklyPlan = {}; let loadedPrecedents = []; let loadedDictionary = SEED_DICTIONARY;
+          let loadedPomo = { work: 25, break: 5 };
 
-          try {
-            const c = await storageAdapter.get("cards");
-            if (c && c.value) loadedCards = JSON.parse(c.value);
-          } catch (e) {}
-
-          try {
-            const r = await storageAdapter.get("resources");
-            if (r && r.value) loadedResources = JSON.parse(r.value);
-          } catch (e) {}
-
-          try {
-            const cs = await storageAdapter.get("cases");
-            if (cs && cs.value) loadedCases = JSON.parse(cs.value);
-          } catch (e) {}
-
-          try {
-            const ln = await storageAdapter.get("law-notes");
-            if (ln && ln.value) loadedLawNotes = JSON.parse(ln.value);
-          } catch (e) {}
-
-          try {
-            const ed = await storageAdapter.get("exam-dates");
-            if (ed && ed.value) loadedExamDates = JSON.parse(ed.value);
-          } catch (e) {}
-
-          // Ders programı verisini alırken eski "string dizisi" yapısındaysa yeni formata dönüştür
+          try { const c = await storageAdapter.get("cards"); if (c && c.value) loadedCards = JSON.parse(c.value); } catch (e) {}
+          try { const r = await storageAdapter.get("resources"); if (r && r.value) loadedResources = JSON.parse(r.value); } catch (e) {}
+          try { const cs = await storageAdapter.get("cases"); if (cs && cs.value) loadedCases = JSON.parse(cs.value); } catch (e) {}
+          try { const ln = await storageAdapter.get("law-notes"); if (ln && ln.value) loadedLawNotes = JSON.parse(ln.value); } catch (e) {}
+          try { const ed = await storageAdapter.get("exam-dates"); if (ed && ed.value) loadedExamDates = JSON.parse(ed.value); } catch (e) {}
           try {
             const wp = await storageAdapter.get("weekly-plan");
             if (wp && wp.value) {
-              const parsed = JSON.parse(wp.value);
-              const migrated = {};
+              const parsed = JSON.parse(wp.value); const migrated = {};
               for (let day of Object.keys(parsed)) {
-                migrated[day] = parsed[day].map(c => 
-                  typeof c === 'string' ? { id: uid(), course: c, time: "09:00", location: "Amfi 1" } : c
-                );
+                migrated[day] = parsed[day].map(c => typeof c === 'string' ? { id: uid(), course: c, time: "09:00", location: "Amfi 1" } : c);
               }
               loadedWeeklyPlan = migrated;
             }
           } catch (e) {}
+          try { const pr = await storageAdapter.get("precedents"); if (pr && pr.value) loadedPrecedents = JSON.parse(pr.value); } catch (e) {}
+          try { const dict = await storageAdapter.get("dictionary"); if (dict && dict.value) loadedDictionary = JSON.parse(dict.value); } catch (e) {}
+          try { const ps = await storageAdapter.get("pomo-settings"); if (ps && ps.value) loadedPomo = JSON.parse(ps.value); } catch (e) {}
 
-          try {
-            const pr = await storageAdapter.get("precedents");
-            if (pr && pr.value) loadedPrecedents = JSON.parse(pr.value);
-          } catch (e) {}
+          let loadedAudioMode = false; try { const am = await storageAdapter.get("audio-mode"); if (am && am.value) loadedAudioMode = JSON.parse(am.value); } catch (e) {}
+          let loadedDarkMode = false; try { const dm = await storageAdapter.get("dark-mode"); if (dm && dm.value) loadedDarkMode = JSON.parse(dm.value); } catch (e) {}
+          let loadedGrades = {}; try { const gr = await storageAdapter.get("grades"); if (gr && gr.value) loadedGrades = JSON.parse(gr.value); } catch (e) {}
+
+          setCards(loadedCards); setResources(loadedResources); setCases(loadedCases); setLawNotes(loadedLawNotes);
+          setExamDates(loadedExamDates); setWeeklyPlan(loadedWeeklyPlan); setPrecedents(loadedPrecedents); setDictionary(loadedDictionary);
+          setAudioMode(loadedAudioMode); setDarkModeState(loadedDarkMode); setGrades(loadedGrades);
           
-          try {
-            const dict = await storageAdapter.get("dictionary");
-            if (dict && dict.value) loadedDictionary = JSON.parse(dict.value);
-          } catch (e) {}
-
-          let loadedAudioMode = false;
-          try {
-            const am = await storageAdapter.get("audio-mode");
-            if (am && am.value) loadedAudioMode = JSON.parse(am.value);
-          } catch (e) {}
-
-          let loadedDarkMode = false;
-          try {
-            const dm = await storageAdapter.get("dark-mode");
-            if (dm && dm.value) loadedDarkMode = JSON.parse(dm.value);
-          } catch (e) {}
-
-          let loadedGrades = {};
-          try {
-            const gr = await storageAdapter.get("grades");
-            if (gr && gr.value) loadedGrades = JSON.parse(gr.value);
-          } catch (e) {}
-
-          setCards(loadedCards);
-          setResources(loadedResources);
-          setCases(loadedCases);
-          setLawNotes(loadedLawNotes);
-          setExamDates(loadedExamDates);
-          setWeeklyPlan(loadedWeeklyPlan);
-          setPrecedents(loadedPrecedents);
-          setDictionary(loadedDictionary);
-          setAudioMode(loadedAudioMode);
-          setDarkModeState(loadedDarkMode);
-          setGrades(loadedGrades);
+          setPomoSettings(loadedPomo); setPomoSettingsDraft(loadedPomo); setPomoMinutes(loadedPomo.work);
           setLoading(false);
         })();
       }, []);
@@ -455,10 +335,18 @@
                 setPomoIsRunning(false);
                 const nextMode = pomoMode === "work" ? "break" : "work";
                 setPomoMode(nextMode);
-                setPomoMinutes(nextMode === "work" ? 25 : 5);
-                showToast(pomoMode === "work" ? "Süre doldu, şimdi dinlenme vakti!" : "Mola bitti, çalışmaya dönelim!");
+                setPomoMinutes(nextMode === "work" ? pomoSettings.work : pomoSettings.break);
+                
+                const randomMsg = nextMode === "break" 
+                  ? WORK_MSGS[Math.floor(Math.random() * WORK_MSGS.length)]
+                  : BREAK_MSGS[Math.floor(Math.random() * BREAK_MSGS.length)];
+
+                showToast(randomMsg);
+                sendPomoNotification(nextMode === "break" ? "Mola Vakti ☕" : "Çalışma Vakti 📚", randomMsg);
+
                 if (audioMode || "speechSynthesis" in window) {
-                   const utter = new SpeechSynthesisUtterance(pomoMode === "work" ? "Süre doldu, mola vakti!" : "Mola bitti, çalışmaya dönelim!");
+                   const utter = new SpeechSynthesisUtterance(randomMsg);
+                   utter.lang = "tr-TR";
                    window.speechSynthesis.speak(utter);
                 }
               }
@@ -466,71 +354,59 @@
           }, 1000);
         }
         return () => clearInterval(interval);
-      }, [pomoIsRunning, pomoMinutes, pomoSeconds, pomoMode]);
+      }, [pomoIsRunning, pomoMinutes, pomoSeconds, pomoMode, pomoSettings]);
 
       const formatPomoTime = () => `${String(pomoMinutes).padStart(2, '0')}:${String(pomoSeconds).padStart(2, '0')}`;
 
       const resetPomodoro = (mode) => {
         setPomoIsRunning(false);
         setPomoMode(mode);
-        setPomoMinutes(mode === "work" ? 25 : 5);
+        setPomoMinutes(mode === "work" ? pomoSettings.work : pomoSettings.break);
         setPomoSeconds(0);
+      };
+
+      const savePomoSettings = () => {
+        let w = parseInt(pomoSettingsDraft.work); let b = parseInt(pomoSettingsDraft.break);
+        if (isNaN(w) || w <= 0) w = 25; if (isNaN(b) || b <= 0) b = 5;
+        const next = { work: w, break: b };
+        setPomoSettings(next);
+        storageAdapter.set("pomo-settings", JSON.stringify(next));
+        
+        if (!pomoIsRunning) {
+          setPomoMinutes(pomoMode === "work" ? w : b);
+          setPomoSeconds(0);
+        }
+        showToast("Süreler başarıyla kaydedildi.");
       };
 
       useEffect(() => {
         const params = new URLSearchParams(window.location.search);
         const sharedUrl = params.get("url") || params.get("text") || "";
         const sharedTitle = params.get("title") || "";
-        if (sharedUrl) {
-          setShareIntake({ url: sharedUrl, title: sharedTitle });
-          window.history.replaceState({}, "", window.location.pathname);
-        }
+        if (sharedUrl) { setShareIntake({ url: sharedUrl, title: sharedTitle }); window.history.replaceState({}, "", window.location.pathname); }
       }, []);
 
       useEffect(() => {
-        if (!printCourse) return;
-        const t = setTimeout(() => window.print(), 150);
-        return () => clearTimeout(t);
+        if (!printCourse) return; const t = setTimeout(() => window.print(), 150); return () => clearTimeout(t);
       }, [printCourse]);
-
-      useEffect(() => {
-        const handleAfterPrint = () => setPrintCourse(null);
-        window.addEventListener("afterprint", handleAfterPrint);
-        return () => window.removeEventListener("afterprint", handleAfterPrint);
-      }, []);
+      useEffect(() => { const handleAfterPrint = () => setPrintCourse(null); window.addEventListener("afterprint", handleAfterPrint); return () => window.removeEventListener("afterprint", handleAfterPrint); }, []);
 
       const saveCards = useCallback(async (next) => { setCards(next); await storageAdapter.set("cards", JSON.stringify(next)); }, []);
       const saveResources = useCallback(async (next) => { setResources(next); await storageAdapter.set("resources", JSON.stringify(next)); }, []);
       const saveCases = useCallback(async (next) => { setCases(next); await storageAdapter.set("cases", JSON.stringify(next)); }, []);
       const savePrecedents = useCallback(async (next) => { setPrecedents(next); await storageAdapter.set("precedents", JSON.stringify(next)); }, []);
       const saveDictionary = useCallback(async (next) => { setDictionary(next); await storageAdapter.set("dictionary", JSON.stringify(next)); }, []);
-      
-      const saveWeeklyPlan = useCallback(async (next) => {
-        setWeeklyPlan(next);
-        await storageAdapter.set("weekly-plan", JSON.stringify(next));
-      }, []);
+      const saveWeeklyPlan = useCallback(async (next) => { setWeeklyPlan(next); await storageAdapter.set("weekly-plan", JSON.stringify(next)); }, []);
 
-      const addScheduleItem = (day) => {
-        const current = weeklyPlan[day] || [];
-        saveWeeklyPlan({...weeklyPlan, [day]: [...current, { id: uid(), course: COURSES[0], time: "09:00", location: "" }]});
-      };
-      
-      const updateScheduleItem = (day, id, field, value) => {
-        const current = weeklyPlan[day] || [];
-        saveWeeklyPlan({...weeklyPlan, [day]: current.map(item => item.id === id ? {...item, [field]: value} : item)});
-      };
-      
-      const removeScheduleItem = (day, id) => {
-        const current = weeklyPlan[day] || [];
-        saveWeeklyPlan({...weeklyPlan, [day]: current.filter(item => item.id !== id)});
-      };
+      const addScheduleItem = (day) => { const current = weeklyPlan[day] || []; saveWeeklyPlan({...weeklyPlan, [day]: [...current, { id: uid(), course: COURSES[0], time: "09:00", location: "" }]}); };
+      const updateScheduleItem = (day, id, field, value) => { const current = weeklyPlan[day] || []; saveWeeklyPlan({...weeklyPlan, [day]: current.map(item => item.id === id ? {...item, [field]: value} : item)}); };
+      const removeScheduleItem = (day, id) => { const current = weeklyPlan[day] || []; saveWeeklyPlan({...weeklyPlan, [day]: current.filter(item => item.id !== id)}); };
 
       const addDictTerm = () => {
         if (!dictForm.term.trim() || !dictForm.definition.trim()) { showToast("Terim ve açıklama gerekli."); return; }
         if (editingDictId) {
           saveDictionary(dictionary.map(d => d.id === editingDictId ? { ...d, term: dictForm.term.trim(), definition: dictForm.definition.trim() } : d));
-          setEditingDictId(null); setDictForm({ term: "", definition: "" }); setShowDictForm(false); showToast("Terim güncellendi.");
-          return;
+          setEditingDictId(null); setDictForm({ term: "", definition: "" }); setShowDictForm(false); showToast("Terim güncellendi."); return;
         }
         const newTerm = { id: uid(), term: dictForm.term.trim(), definition: dictForm.definition.trim() };
         saveDictionary([...dictionary, newTerm].sort((a,b) => a.term.localeCompare(b.term, "tr")));
@@ -557,28 +433,19 @@
       const saveAudioMode = useCallback(async (next) => { setAudioMode(next); await storageAdapter.set("audio-mode", JSON.stringify(next)); }, []);
       const setDarkMode = useCallback(async (next) => { setDarkModeState(next); await storageAdapter.set("dark-mode", JSON.stringify(next)); }, []);
       const saveGrades = useCallback(async (next) => { setGrades(next); await storageAdapter.set("grades", JSON.stringify(next)); }, []);
-
       const updateGrade = (course, field, value) => { const current = grades[course] || {}; saveGrades({ ...grades, [course]: { ...current, [field]: value } }); };
-
-      const getLetterGrade = (score) => {
-        if (score >= 88) return "AA"; if (score >= 81) return "BA"; if (score >= 74) return "BB"; if (score >= 67) return "CB";
-        if (score >= 60) return "CC"; if (score >= 53) return "DC"; if (score >= 46) return "DD"; if (score >= 39) return "FD"; return "FF";
-      };
+      const getLetterGrade = (score) => { if (score >= 88) return "AA"; if (score >= 81) return "BA"; if (score >= 74) return "BB"; if (score >= 67) return "CB"; if (score >= 60) return "CC"; if (score >= 53) return "DC"; if (score >= 46) return "DD"; if (score >= 39) return "FD"; return "FF"; };
 
       const speak = (text) => {
-        if (!text) return;
-        if (!("speechSynthesis" in window)) { showToast("Bu tarayıcı sesli okumayı desteklemiyor."); return; }
-        window.speechSynthesis.cancel();
-        const utter = new SpeechSynthesisUtterance(text);
-        utter.lang = "tr-TR"; utter.rate = 0.95;
-        window.speechSynthesis.speak(utter);
+        if (!text) return; if (!("speechSynthesis" in window)) { showToast("Bu tarayıcı sesli okumayı desteklemiyor."); return; }
+        window.speechSynthesis.cancel(); const utter = new SpeechSynthesisUtterance(text); utter.lang = "tr-TR"; utter.rate = 0.95; window.speechSynthesis.speak(utter);
       };
 
       const saveLawNotes = useCallback(async (next) => { setLawNotes(next); await storageAdapter.set("law-notes", JSON.stringify(next)); }, []);
       const saveExamDates = useCallback(async (next) => { setExamDates(next); await storageAdapter.set("exam-dates", JSON.stringify(next)); }, []);
 
       const exportBackup = () => {
-        const payload = { app: "muzo-hukuk", version: 1, exportedAt: new Date().toISOString(), cards, resources, cases, lawNotes, examDates, weeklyPlan, precedents, grades, dictionary };
+        const payload = { app: "muzo-hukuk", version: 1, exportedAt: new Date().toISOString(), cards, resources, cases, lawNotes, examDates, weeklyPlan, precedents, grades, dictionary, pomoSettings };
         const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a"); a.href = url; a.download = `muzo-hukuk-yedek-${new Date().toISOString().split("T")[0]}.json`;
@@ -594,6 +461,7 @@
             if (data.cards) await saveCards(data.cards); if (data.resources) await saveResources(data.resources); if (data.cases) await saveCases(data.cases);
             if (data.lawNotes) await saveLawNotes(data.lawNotes); if (data.examDates) await saveExamDates(data.examDates); if (data.weeklyPlan) await saveWeeklyPlan(data.weeklyPlan);
             if (data.precedents) await savePrecedents(data.precedents); if (data.grades) await saveGrades(data.grades); if (data.dictionary) await saveDictionary(data.dictionary);
+            if (data.pomoSettings) { setPomoSettings(data.pomoSettings); setPomoSettingsDraft(data.pomoSettings); await storageAdapter.set("pomo-settings", JSON.stringify(data.pomoSettings)); }
             showToast("Yedek geri yüklendi!"); setShowSettings(false);
           } catch (err) { showToast("Dosya okunamadı, geçerli bir JSON yedeği olmalı."); }
         };
@@ -654,24 +522,20 @@
           const refs = new Set([...parseArticleRefs(c.statute, null), ...parseArticleRefs(c.front, null), ...parseArticleRefs(c.back, null)]);
           refs.forEach((r) => add(r, "cards", c));
         });
-
         cases.forEach((c) => {
           const refs = new Set([...parseArticleRefs(c.statute, null), ...parseArticleRefs(c.legalIssue, null), ...parseArticleRefs(c.solution, null)]);
           refs.forEach((r) => add(r, "cases", c));
         });
-
         Object.entries(lawNotes).forEach(([code, notes]) => {
           (notes || []).forEach((n) => {
             const refs = new Set([...parseArticleRefs(n.madde, code), ...parseArticleRefs(n.text, code)]);
             refs.forEach((r) => add(r, "notes", { ...n, code }));
           });
         });
-
         precedents.forEach((p) => {
           const refs = new Set([...parseArticleRefs(p.statute, null), ...parseArticleRefs(p.summary, null)]);
           refs.forEach((r) => add(r, "precedents", p));
         });
-
         return idx;
       }, [cards, cases, lawNotes, precedents]);
 
@@ -681,7 +545,6 @@
       }, [articleIndex, articleSearch]);
 
       const topics = useMemo(() => { const set = new Set(cards.map((c) => c.topic)); return Array.from(set); }, [cards]);
-
       const topicStats = useMemo(() => {
         return topics.map((t) => {
           const tc = cards.filter((c) => c.topic === t);
@@ -691,11 +554,8 @@
       }, [cards, topics]);
 
       const weakestTopics = useMemo(() => { return [...topicStats].filter((t) => t.count > 0).sort((a, b) => a.mastery - b.mastery).slice(0, 3); }, [topicStats]);
-
       const flaggedNotesList = useMemo(() => {
-        const list = [];
-        Object.entries(lawNotes).forEach(([code, notes]) => { (notes || []).forEach((n) => { if (n.review) list.push({ ...n, code }); }); });
-        return list;
+        const list = []; Object.entries(lawNotes).forEach(([code, notes]) => { (notes || []).forEach((n) => { if (n.review) list.push({ ...n, code }); }); }); return list;
       }, [lawNotes]);
 
       const todaysPlanCourses = weeklyPlan[todayWeekdayName] || [];
@@ -733,7 +593,6 @@
       const current = queue[cursor % Math.max(queue.length, 1)];
 
       useEffect(() => { if (tab !== "cards" && "speechSynthesis" in window) window.speechSynthesis.cancel(); }, [tab]);
-
       useEffect(() => { if (!audioMode || quizMode || !current) return; speak(flipped ? current.back : current.front); }, [audioMode, flipped, current && current.id, quizMode]);
 
       const rate = (delta) => {
@@ -837,10 +696,11 @@
                 </div>
               </div>
               <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
-                <button onClick={() => setShowPomodoro(true)} style={{ background: COLORS.surface, border: `1px solid ${COLORS.line}`, borderRadius: 8, width: 36, height: 36, fontSize: 15, position: "relative" }}>
-                  ⏳
-                  {pomoIsRunning && <span style={{position:"absolute", top:-3, right:-3, width:10, height:10, background:COLORS.rust, borderRadius:999, border:`2px solid ${COLORS.surface}`}}></span>}
-                </button>
+                {pomoIsRunning && tab !== "pomodoro" && (
+                  <button onClick={() => setTab("pomodoro")} style={{ background: COLORS.surface, border: `1px solid ${COLORS.bordo}`, borderRadius: 8, width: 36, height: 36, fontSize: 15, position: "relative" }}>
+                    ⏳<span style={{position:"absolute", top:-3, right:-3, width:10, height:10, background:COLORS.rust, borderRadius:999, border:`2px solid ${COLORS.surface}`}}></span>
+                  </button>
+                )}
                 <button onClick={() => setDarkMode(!darkMode)} style={{ background: COLORS.surface, border: `1px solid ${COLORS.line}`, borderRadius: 8, width: 36, height: 36, fontSize: 15 }}>
                   {darkMode ? "☀️" : "🌙"}
                 </button>
@@ -862,7 +722,6 @@
 
             {/* Sınav Geri Sayımı & Günlük Hedef Widget'ı */}
             <div style={{ marginTop: 14, background: COLORS.surface, border: `1px solid ${COLORS.line}`, borderRadius: 8, padding: "12px 14px", boxShadow: "0 2px 6px rgba(28,43,74,0.04)" }}>
-              {/* Sınav Sayacı */}
               <div style={{ display: "flex", gap: 10, marginBottom: 10 }}>
                 <div style={{ flex: 1, background: COLORS.parchment, padding: "8px 10px", borderRadius: 6, border: `1px solid ${COLORS.line}` }}>
                   <div style={{ fontSize: 10.5, color: COLORS.bordo, fontWeight: 700, letterSpacing: 0.4 }}>VİZE ({formatDateLabel(vizeDateStr)})</div>
@@ -879,7 +738,6 @@
                 </div>
               </div>
 
-              {/* Günlük Fiş İlerleme Çubuğu */}
               <div>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 11, fontWeight: 600, color: COLORS.charcoal, marginBottom: 4 }}>
                   <span>🎯 Bugünün Fiş Hedefi</span>
@@ -888,50 +746,11 @@
                   </span>
                 </div>
                 <div style={{ height: 6, background: COLORS.track, borderRadius: 999, overflow: "hidden" }}>
-                  <div style={{
-                    height: "100%",
-                    width: `${Math.min(100, (todayReviewedCount / dailyTarget) * 100)}%`,
-                    background: todayReviewedCount >= dailyTarget ? COLORS.green : COLORS.bordo,
-                    borderRadius: 999,
-                    transition: "width 0.3s ease"
-                  }} />
+                  <div style={{ height: "100%", width: `${Math.min(100, (todayReviewedCount / dailyTarget) * 100)}%`, background: todayReviewedCount >= dailyTarget ? COLORS.green : COLORS.bordo, borderRadius: 999, transition: "width 0.3s ease" }} />
                 </div>
               </div>
             </div>
           </div>
-
-          {/* Pomodoro Modal */}
-          {showPomodoro && (
-            <div style={{ position: "fixed", inset: 0, background: "rgba(28,43,74,0.6)", zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }} onClick={() => setShowPomodoro(false)}>
-              <div onClick={(e) => e.stopPropagation()} style={{ background: COLORS.parchment, borderRadius: 16, padding: "24px 20px", width: "100%", maxWidth: 320, textAlign: "center", boxShadow: "0 10px 30px rgba(0,0,0,0.2)" }}>
-                <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: -10 }}>
-                  <button onClick={() => setShowPomodoro(false)} style={{ background: "none", border: "none", fontSize: 20, color: COLORS.bordo }}>✕</button>
-                </div>
-                
-                <div style={{ display: "flex", gap: 6, marginBottom: 20, background: COLORS.surface, padding: 4, borderRadius: 8, border: `1px solid ${COLORS.line}` }}>
-                  <button onClick={() => resetPomodoro("work")} style={{ flex: 1, padding: "8px 0", borderRadius: 6, fontSize: 12.5, fontWeight: 600, border: "none", background: pomoMode === "work" ? COLORS.bordo : "transparent", color: pomoMode === "work" ? "#fff" : COLORS.charcoal }}>Çalışma</button>
-                  <button onClick={() => resetPomodoro("break")} style={{ flex: 1, padding: "8px 0", borderRadius: 6, fontSize: 12.5, fontWeight: 600, border: "none", background: pomoMode === "break" ? COLORS.bordo : "transparent", color: pomoMode === "break" ? "#fff" : COLORS.charcoal }}>Mola</button>
-                </div>
-                
-                <div style={{ fontSize: 13, color: COLORS.charcoal, opacity: 0.8, marginBottom: 10, fontWeight: 500 }}>
-                  {pomoMode === "work" ? "Odaklanma vakti geldi 📚" : "Kısa bir nefes al ☕"}
-                </div>
-                
-                <div style={{ fontFamily: "'Fraunces', serif", fontSize: 64, fontWeight: 700, color: COLORS.heading, margin: "10px 0 24px", lineHeight: 1, letterSpacing: -1 }}>
-                  {formatPomoTime()}
-                </div>
-                
-                <div style={{ display: "flex", gap: 10 }}>
-                  <button onClick={() => setPomoIsRunning(!pomoIsRunning)} style={{ flex: 2, padding: "14px 0", borderRadius: 8, border: "none", background: pomoIsRunning ? COLORS.gold : COLORS.ink, color: pomoIsRunning ? COLORS.ink : "#fff", fontWeight: 700, fontSize: 15 }}>
-                    {pomoIsRunning ? "Duraklat" : "Başla"}
-                  </button>
-                  <button onClick={() => resetPomodoro(pomoMode)} style={{ flex: 1, padding: "14px 0", borderRadius: 8, border: `1px solid ${COLORS.line}`, background: COLORS.surface, color: COLORS.charcoal, fontWeight: 600, fontSize: 14 }}>
-                    Sıfırla
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
 
           {/* Ayarlar Paneli */}
           {showSettings && (
@@ -971,11 +790,7 @@
 
           {/* Toast Notification */}
           {toast && (
-            <div style={{
-              position: "fixed", top: 16, left: "50%", transform: "translateX(-50%)",
-              background: COLORS.ink, color: "#fff", padding: "10px 18px", borderRadius: 20,
-              fontSize: 12.5, fontWeight: 500, zIndex: 1000, boxShadow: "0 4px 12px rgba(0,0,0,0.15)"
-            }}>
+            <div style={{ position: "fixed", top: 16, left: "50%", transform: "translateX(-50%)", background: COLORS.ink, color: "#fff", padding: "10px 18px", borderRadius: 20, fontSize: 12.5, fontWeight: 500, zIndex: 1000, boxShadow: "0 4px 12px rgba(0,0,0,0.15)", whiteSpace: "nowrap" }}>
               {toast}
             </div>
           )}
@@ -1161,6 +976,66 @@
             </div>
           )}
 
+          {/* ---- ODAK (POMODORO) TAB ---- */}
+          {tab === "pomodoro" && (
+            <div style={{ padding: "18px 20px" }}>
+              <div style={{ fontFamily: "'Fraunces', serif", fontSize: 18, color: COLORS.heading, marginBottom: 6 }}>Odak Modu</div>
+              <div style={{ fontSize: 12, color: COLORS.bordo, opacity: 0.8, marginBottom: 18, lineHeight: 1.4 }}>
+                Süreni belirle, bildirimleri aç ve dikkatini sadece derse ver.
+              </div>
+
+              {!notificationGranted && (
+                <div style={{ background: COLORS.surface, border: `1px dashed ${COLORS.rust}`, borderRadius: 6, padding: "12px 14px", marginBottom: 16, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <div style={{ fontSize: 11.5, color: COLORS.charcoal, width: "65%", lineHeight: 1.3 }}>
+                    Motivasyon bildirimleri kapalı. Süre bitiminde uyarı almak için izin ver.
+                  </div>
+                  <button onClick={requestNotificationPermission} style={{ background: COLORS.rust, border: "none", borderRadius: 5, color: "#fff", fontSize: 11.5, fontWeight: 700, padding: "8px 12px" }}>
+                    İzin Ver
+                  </button>
+                </div>
+              )}
+
+              {/* Ayarlar Kartı */}
+              <div style={{ background: COLORS.surface, border: `1px solid ${COLORS.line}`, borderRadius: 8, padding: "16px 14px", marginBottom: 16 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.6, color: COLORS.bordo, marginBottom: 10 }}>SÜRE AYARLARI</div>
+                <div style={{ display: "flex", gap: 10, alignItems: "flex-end" }}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 11, color: COLORS.charcoal, marginBottom: 4 }}>Çalışma (dk)</div>
+                    <input type="number" min="1" value={pomoSettingsDraft.work} onChange={(e) => setPomoSettingsDraft({...pomoSettingsDraft, work: e.target.value})} style={{ width: "100%", padding: "8px 10px", borderRadius: 5, border: `1px solid ${COLORS.line}`, fontSize: 13, background: COLORS.parchment }} />
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 11, color: COLORS.charcoal, marginBottom: 4 }}>Mola (dk)</div>
+                    <input type="number" min="1" value={pomoSettingsDraft.break} onChange={(e) => setPomoSettingsDraft({...pomoSettingsDraft, break: e.target.value})} style={{ width: "100%", padding: "8px 10px", borderRadius: 5, border: `1px solid ${COLORS.line}`, fontSize: 13, background: COLORS.parchment }} />
+                  </div>
+                  <button onClick={savePomoSettings} style={{ padding: "9px 14px", borderRadius: 5, border: "none", background: COLORS.ink, color: "#fff", fontWeight: 600, fontSize: 12.5, height: 35 }}>
+                    Kaydet
+                  </button>
+                </div>
+              </div>
+
+              {/* Sayaç Kartı */}
+              <div style={{ background: COLORS.surface, border: `1px solid ${COLORS.line}`, borderRadius: 12, padding: "30px 20px", textAlign: "center", boxShadow: "0 4px 12px rgba(28,43,74,0.03)" }}>
+                <div style={{ display: "inline-flex", gap: 6, marginBottom: 24, background: COLORS.parchment, padding: 4, borderRadius: 8, border: `1px solid ${COLORS.line}` }}>
+                  <button onClick={() => resetPomodoro("work")} style={{ padding: "8px 16px", borderRadius: 6, fontSize: 12.5, fontWeight: 600, border: "none", background: pomoMode === "work" ? COLORS.bordo : "transparent", color: pomoMode === "work" ? "#fff" : COLORS.charcoal }}>Çalışma</button>
+                  <button onClick={() => resetPomodoro("break")} style={{ padding: "8px 16px", borderRadius: 6, fontSize: 12.5, fontWeight: 600, border: "none", background: pomoMode === "break" ? COLORS.bordo : "transparent", color: pomoMode === "break" ? "#fff" : COLORS.charcoal }}>Mola</button>
+                </div>
+                
+                <div style={{ fontFamily: "'Fraunces', serif", fontSize: 72, fontWeight: 700, color: COLORS.heading, margin: "0 0 24px", lineHeight: 1, letterSpacing: -1.5 }}>
+                  {formatPomoTime()}
+                </div>
+                
+                <div style={{ display: "flex", gap: 10, justifyContent: "center" }}>
+                  <button onClick={() => setPomoIsRunning(!pomoIsRunning)} style={{ width: 140, padding: "14px 0", borderRadius: 8, border: "none", background: pomoIsRunning ? COLORS.gold : COLORS.ink, color: pomoIsRunning ? COLORS.ink : "#fff", fontWeight: 700, fontSize: 15 }}>
+                    {pomoIsRunning ? "Duraklat" : "Başla"}
+                  </button>
+                  <button onClick={() => resetPomodoro(pomoMode)} style={{ width: 90, padding: "14px 0", borderRadius: 8, border: `1px solid ${COLORS.line}`, background: COLORS.parchment, color: COLORS.charcoal, fontWeight: 600, fontSize: 14 }}>
+                    Sıfırla
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* ---- DERSLER TAB ---- */}
           {tab === "dersler" && !selectedCourse && (
             <div style={{ padding: "18px 20px" }}>
@@ -1175,12 +1050,8 @@
                       padding: "14px 12px", textAlign: "left", boxShadow: "0 2px 8px rgba(28,43,74,0.04)"
                     }}>
                       <div style={{ position: "absolute", top: 0, left: 0, width: "100%", height: 5, background: COLORS.gold, borderRadius: "6px 6px 0 0" }} />
-                      <div style={{ fontFamily: "'Fraunces', serif", fontSize: 15, fontWeight: 600, color: COLORS.heading, lineHeight: 1.3, marginTop: 8 }}>
-                        {course}
-                      </div>
-                      <div style={{ fontSize: 11, color: COLORS.bordo, fontWeight: 500 }}>
-                        {count > 0 ? `${count} kaynak` : "kaynak yok"}
-                      </div>
+                      <div style={{ fontFamily: "'Fraunces', serif", fontSize: 15, fontWeight: 600, color: COLORS.heading, lineHeight: 1.3, marginTop: 8 }}>{course}</div>
+                      <div style={{ fontSize: 11, color: COLORS.bordo, fontWeight: 500 }}>{count > 0 ? `${count} kaynak` : "kaynak yok"}</div>
                     </button>
                   );
                 })}
@@ -1190,40 +1061,17 @@
 
           {tab === "dersler" && selectedCourse && (
             <div style={{ padding: "18px 20px" }}>
-              <button onClick={goBackToCourses} style={{ background: "none", border: "none", color: COLORS.bordo, fontSize: 13, fontWeight: 600, marginBottom: 14, padding: 0 }}>
-                ← Derslerim
-              </button>
-              <div style={{ fontFamily: "'Fraunces', serif", fontSize: 19, fontWeight: 600, color: COLORS.heading, marginBottom: 16 }}>
-                {selectedCourse}
-              </div>
+              <button onClick={goBackToCourses} style={{ background: "none", border: "none", color: COLORS.bordo, fontSize: 13, fontWeight: 600, marginBottom: 14, padding: 0 }}>← Derslerim</button>
+              <div style={{ fontFamily: "'Fraunces', serif", fontSize: 19, fontWeight: 600, color: COLORS.heading, marginBottom: 16 }}>{selectedCourse}</div>
 
-              <div style={{ background: COLORS.surface, border: `1px solid ${COLORS.line}`, borderRadius: 6, padding: "10px 14px", marginBottom: 16, display: "flex", gap: 8, alignItems: "center" }}>
-                <span style={{ fontSize: 16 }}>💡</span>
-                <span style={{ fontSize: 11.5, color: COLORS.charcoal, opacity: 0.75, lineHeight: 1.4 }}>
-                  PDF notlarını Drive'a yükleyip bağlantısını aşağıdan "+ Bağlantı / Not Ekle" ile ekle.
-                </span>
-              </div>
-
-              {/* Bu Dersin Fişleri */}
               <div style={{ background: COLORS.surface, border: `1px solid ${COLORS.line}`, borderRadius: 6, padding: "14px 16px", marginBottom: 16, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <div>
                   <div style={{ fontWeight: 600, fontSize: 13.5, color: COLORS.heading }}>📇 Bu Dersin Fişleri</div>
-                  <div style={{ fontSize: 11.5, color: COLORS.bordo, marginTop: 2 }}>
-                    {cards.filter((c) => c.topic === selectedCourse).length} fiş
-                  </div>
+                  <div style={{ fontSize: 11.5, color: COLORS.bordo, marginTop: 2 }}>{cards.filter((c) => c.topic === selectedCourse).length} fiş</div>
                 </div>
                 <div style={{ display: "flex", gap: 6, flexWrap: "wrap", justifyContent: "flex-end" }}>
-                  <button onClick={() => { setSelectedTopic(selectedCourse); setTab("cards"); }} style={{ padding: "8px 12px", borderRadius: 5, border: "none", background: COLORS.ink, color: "#fff", fontWeight: 600, fontSize: 12 }}>
-                    Çalış
-                  </button>
-                  <button onClick={() => { setForm({ topic: selectedCourse, front: "", back: "", statute: "" }); setShowAddForm(true); setTab("topics"); }} style={{ padding: "8px 12px", borderRadius: 5, border: `1px solid ${COLORS.line}`, background: "transparent", color: COLORS.heading, fontWeight: 600, fontSize: 12 }}>
-                    + Fiş Ekle
-                  </button>
-                  {cards.filter((c) => c.topic === selectedCourse).length > 0 && (
-                    <button onClick={() => setPrintCourse(selectedCourse)} style={{ padding: "8px 12px", borderRadius: 5, border: `1px solid ${COLORS.line}`, background: "transparent", color: COLORS.heading, fontWeight: 600, fontSize: 12 }}>
-                      🖨️ Yazdır
-                    </button>
-                  )}
+                  <button onClick={() => { setSelectedTopic(selectedCourse); setTab("cards"); }} style={{ padding: "8px 12px", borderRadius: 5, border: "none", background: COLORS.ink, color: "#fff", fontWeight: 600, fontSize: 12 }}>Çalış</button>
+                  <button onClick={() => { setForm({ topic: selectedCourse, front: "", back: "", statute: "" }); setShowAddForm(true); setTab("topics"); }} style={{ padding: "8px 12px", borderRadius: 5, border: `1px solid ${COLORS.line}`, background: "transparent", color: COLORS.heading, fontWeight: 600, fontSize: 12 }}>+ Fiş Ekle</button>
                 </div>
               </div>
 
@@ -1280,9 +1128,7 @@
               )}
 
               {!showResourceForm ? (
-                <button onClick={() => setShowResourceForm(true)} style={{ width: "100%", padding: "13px 0", borderRadius: 6, border: `1px dashed ${COLORS.bordo}`, background: "transparent", color: COLORS.bordo, fontWeight: 600, fontSize: 13.5 }}>
-                  + Bağlantı / Not Ekle
-                </button>
+                <button onClick={() => setShowResourceForm(true)} style={{ width: "100%", padding: "13px 0", borderRadius: 6, border: `1px dashed ${COLORS.bordo}`, background: "transparent", color: COLORS.bordo, fontWeight: 600, fontSize: 13.5 }}>+ Bağlantı / Not Ekle</button>
               ) : (
                 <div style={{ background: COLORS.surface, border: `1px solid ${COLORS.line}`, borderRadius: 6, padding: 16 }}>
                   <div style={{ fontWeight: 600, fontSize: 13.5, color: COLORS.heading, marginBottom: 10 }}>{editingResourceId ? "Kaynağı Düzenle" : "Yeni Kaynak"}</div>
@@ -1291,17 +1137,16 @@
                       <button key={cat} onClick={() => setResourceForm({ ...resourceForm, category: cat })} style={{
                         flex: 1, padding: "8px 0", borderRadius: 5, fontSize: 12.5, fontWeight: 600,
                         border: `1px solid ${resourceForm.category === cat ? COLORS.bordo : COLORS.line}`,
-                        background: resourceForm.category === cat ? COLORS.bordo : "transparent",
-                        color: resourceForm.category === cat ? "#fff" : COLORS.charcoal,
+                        background: resourceForm.category === cat ? COLORS.bordo : "transparent", color: resourceForm.category === cat ? "#fff" : COLORS.charcoal,
                       }}>{cat}</button>
                     ))}
                   </div>
-                  <input placeholder="Kaynak adı (örn. Slayt, Önemli Makale)" value={resourceForm.title} onChange={(e) => setResourceForm({ ...resourceForm, title: e.target.value })} style={{ width: "100%", padding: "10px 12px", borderRadius: 5, border: `1px solid ${COLORS.line}`, marginBottom: 8, fontSize: 13.5 }} />
+                  <input placeholder="Kaynak adı" value={resourceForm.title} onChange={(e) => setResourceForm({ ...resourceForm, title: e.target.value })} style={{ width: "100%", padding: "10px 12px", borderRadius: 5, border: `1px solid ${COLORS.line}`, marginBottom: 8, fontSize: 13.5 }} />
                   <input placeholder="Bağlantı (Drive vs.)" value={resourceForm.url} onChange={(e) => setResourceForm({ ...resourceForm, url: e.target.value })} style={{ width: "100%", padding: "10px 12px", borderRadius: 5, border: `1px solid ${COLORS.line}`, marginBottom: 8, fontSize: 13.5 }} />
                   <textarea placeholder="Not (opsiyonel)" value={resourceForm.note} onChange={(e) => setResourceForm({ ...resourceForm, note: e.target.value })} style={{ width: "100%", padding: "10px 12px", borderRadius: 5, border: `1px solid ${COLORS.line}`, marginBottom: 12, fontSize: 13.5, minHeight: 50, resize: "vertical" }} />
                   <div style={{ display: "flex", gap: 8 }}>
                     <button onClick={addResource} style={{ flex: 1, padding: "11px 0", borderRadius: 5, border: "none", background: COLORS.ink, color: "#fff", fontWeight: 600, fontSize: 13.5 }}>{editingResourceId ? "Güncelle" : "Kaydet"}</button>
-                    <button onClick={() => (editingResourceId ? cancelResourceEdit() : setShowResourceForm(false))} style={{ flex: 1, padding: "11px 0", borderRadius: 5, border: `1px solid ${COLORS.line}`, background: "transparent", color: COLORS.charcoal, fontSize: 13.5 }}>{editingResourceId ? "İptal" : "Kapat"}</button>
+                    <button onClick={() => (editingResourceId ? cancelResourceEdit() : setShowResourceForm(false))} style={{ flex: 1, padding: "11px 0", borderRadius: 5, border: `1px solid ${COLORS.line}`, background: "transparent", color: COLORS.charcoal, fontSize: 13.5 }}>İptal</button>
                   </div>
                 </div>
               )}
@@ -1312,21 +1157,11 @@
           {tab === "sozluk" && (
             <div style={{ padding: "18px 20px" }}>
               <div style={{ fontFamily: "'Fraunces', serif", fontSize: 18, color: COLORS.heading, marginBottom: 14 }}>Hukuk Sözlüğü</div>
-              <div style={{ fontSize: 12, color: COLORS.bordo, opacity: 0.8, marginBottom: 14 }}>
-                Hukuki terimleri ve anlamlarını burada toplayabilirsin.
-              </div>
-
-              <input
-                placeholder="Terim veya anlam ara..."
-                value={dictSearch}
-                onChange={(e) => setDictSearch(e.target.value)}
-                style={{ width: "100%", padding: "10px 12px", borderRadius: 6, border: `1px solid ${COLORS.line}`, marginBottom: 14, fontSize: 13, background: COLORS.surface }}
-              />
+              
+              <input placeholder="Terim veya anlam ara..." value={dictSearch} onChange={(e) => setDictSearch(e.target.value)} style={{ width: "100%", padding: "10px 12px", borderRadius: 6, border: `1px solid ${COLORS.line}`, marginBottom: 14, fontSize: 13, background: COLORS.surface }} />
 
               {!showDictForm ? (
-                <button onClick={() => setShowDictForm(true)} style={{ width: "100%", padding: "13px 0", borderRadius: 6, border: `1px dashed ${COLORS.bordo}`, background: "transparent", color: COLORS.bordo, fontWeight: 600, fontSize: 13.5, marginBottom: 14 }}>
-                  + Yeni Terim Ekle
-                </button>
+                <button onClick={() => setShowDictForm(true)} style={{ width: "100%", padding: "13px 0", borderRadius: 6, border: `1px dashed ${COLORS.bordo}`, background: "transparent", color: COLORS.bordo, fontWeight: 600, fontSize: 13.5, marginBottom: 14 }}>+ Yeni Terim Ekle</button>
               ) : (
                 <div style={{ background: COLORS.surface, border: `1px solid ${COLORS.line}`, borderRadius: 6, padding: 16, marginBottom: 14 }}>
                   <div style={{ fontWeight: 600, fontSize: 13.5, color: COLORS.heading, marginBottom: 10 }}>{editingDictId ? "Terimi Düzenle" : "Yeni Terim"}</div>
@@ -1340,9 +1175,7 @@
               )}
 
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                {dictionary
-                  .filter(d => !dictSearch || d.term.toLowerCase().includes(dictSearch.toLowerCase()) || d.definition.toLowerCase().includes(dictSearch.toLowerCase()))
-                  .map(d => (
+                {dictionary.filter(d => !dictSearch || d.term.toLowerCase().includes(dictSearch.toLowerCase()) || d.definition.toLowerCase().includes(dictSearch.toLowerCase())).map(d => (
                     <div key={d.id} style={{ background: COLORS.surface, border: `1px solid ${COLORS.line}`, borderRadius: 6, padding: "12px 14px" }}>
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 4 }}>
                         <div style={{ fontFamily: "'Fraunces', serif", fontSize: 15, fontWeight: 700, color: COLORS.heading }}>{d.term}</div>
@@ -1354,9 +1187,6 @@
                       <div style={{ fontSize: 13, color: COLORS.charcoal, lineHeight: 1.45 }}>{d.definition}</div>
                     </div>
                 ))}
-                {dictionary.length > 0 && dictionary.filter(d => !dictSearch || d.term.toLowerCase().includes(dictSearch.toLowerCase()) || d.definition.toLowerCase().includes(dictSearch.toLowerCase())).length === 0 && (
-                  <div style={{ textAlign: "center", padding: "20px", color: COLORS.bordo, fontSize: 12.5 }}>Aranan terim bulunamadı.</div>
-                )}
               </div>
             </div>
           )}
@@ -1369,31 +1199,15 @@
                   <button key={key} onClick={() => { setLawSubTab(key); setSelectedArticle(null); }} style={{
                     flex: 1, padding: "8px 0", borderRadius: 6, fontSize: 12.5, fontWeight: 600,
                     border: `1px solid ${lawSubTab === key ? COLORS.bordo : COLORS.line}`,
-                    background: lawSubTab === key ? COLORS.bordo : "#fff",
-                    color: lawSubTab === key ? "#fff" : COLORS.charcoal,
+                    background: lawSubTab === key ? COLORS.bordo : "#fff", color: lawSubTab === key ? "#fff" : COLORS.charcoal,
                   }}>{label}</button>
                 ))}
               </div>
 
               {lawSubTab === "kanunlar" && (
                 <>
-                  <div style={{ fontSize: 12, color: COLORS.bordo, opacity: 0.8, marginBottom: 12 }}>
-                    Mevzuata erişin; maddelere renk etiketi ve "tekrar et" işaretiyle not bırakın.
-                  </div>
-
-                  <input
-                    placeholder="Kanunlarda ara..."
-                    value={lawSearch}
-                    onChange={(e) => setLawSearch(e.target.value)}
-                    style={{ width: "100%", padding: "10px 12px", borderRadius: 6, border: `1px solid ${COLORS.line}`, marginBottom: 10, fontSize: 13, background: COLORS.surface }}
-                  />
-
-                  <button onClick={() => setOnlyFlaggedNotes(!onlyFlaggedNotes)} style={{
-                    width: "100%", padding: "8px 0", borderRadius: 6, marginBottom: 14, fontSize: 12, fontWeight: 600,
-                    border: `1px solid ${onlyFlaggedNotes ? COLORS.bordo : COLORS.line}`,
-                    background: onlyFlaggedNotes ? COLORS.bordo : "#fff",
-                    color: onlyFlaggedNotes ? "#fff" : COLORS.charcoal,
-                  }}>
+                  <input placeholder="Kanunlarda ara..." value={lawSearch} onChange={(e) => setLawSearch(e.target.value)} style={{ width: "100%", padding: "10px 12px", borderRadius: 6, border: `1px solid ${COLORS.line}`, marginBottom: 10, fontSize: 13, background: COLORS.surface }} />
+                  <button onClick={() => setOnlyFlaggedNotes(!onlyFlaggedNotes)} style={{ width: "100%", padding: "8px 0", borderRadius: 6, marginBottom: 14, fontSize: 12, fontWeight: 600, border: `1px solid ${onlyFlaggedNotes ? COLORS.bordo : COLORS.line}`, background: onlyFlaggedNotes ? COLORS.bordo : "#fff", color: onlyFlaggedNotes ? "#fff" : COLORS.charcoal }}>
                     {onlyFlaggedNotes ? "🔖 Sadece 'tekrar et' işaretliler" : "🔖 Tümünü göster"}
                   </button>
 
@@ -1406,9 +1220,7 @@
                       return (
                         <div key={law.code} style={{ background: COLORS.surface, border: `1px solid ${COLORS.line}`, borderRadius: 6, overflow: "hidden" }}>
                           <a href={law.url} target="_blank" rel="noreferrer" style={{ textDecoration: "none", display: "flex", gap: 12, alignItems: "center", padding: "14px 16px" }}>
-                            <div style={{ width: 44, height: 44, borderRadius: 6, background: COLORS.ink, color: "#F6F1E4", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Fraunces', serif", fontWeight: 700, fontSize: 12.5, flexShrink: 0 }}>
-                              {law.code}
-                            </div>
+                            <div style={{ width: 44, height: 44, borderRadius: 6, background: COLORS.ink, color: "#F6F1E4", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Fraunces', serif", fontWeight: 700, fontSize: 12.5, flexShrink: 0 }}>{law.code}</div>
                             <div style={{ flex: 1 }}>
                               <div style={{ fontWeight: 600, fontSize: 14, color: COLORS.heading }}>{law.title}</div>
                               <div style={{ fontSize: 11.5, color: COLORS.charcoal, opacity: 0.7, marginTop: 2 }}>{law.note}</div>
@@ -1430,9 +1242,9 @@
                                           {n.review && <span style={{ marginLeft: 6, fontSize: 9, fontWeight: 700, color: "#fff", background: COLORS.rust, borderRadius: 999, padding: "2px 6px" }}>TEKRAR</span>}
                                         </div>
                                         <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
-                                          <button onClick={() => cycleNoteColor(law.code, n.id)} title="Renk etiketi" style={{ background: "none", border: "none", padding: 0, fontSize: 13, color: getNoteColor(n.color) }}>●</button>
-                                          <button onClick={() => toggleNoteReview(law.code, n.id)} title="Tekrar et" style={{ background: "none", border: "none", padding: 0, fontSize: 11, opacity: n.review ? 1 : 0.35 }}>🔖</button>
-                                          <button onClick={() => startEditNote(n)} title="Düzenle" style={{ background: "none", border: "none", padding: 0, fontSize: 10.5, color: COLORS.bordo, opacity: 0.65 }}>✎</button>
+                                          <button onClick={() => cycleNoteColor(law.code, n.id)} style={{ background: "none", border: "none", padding: 0, fontSize: 13, color: getNoteColor(n.color) }}>●</button>
+                                          <button onClick={() => toggleNoteReview(law.code, n.id)} style={{ background: "none", border: "none", padding: 0, fontSize: 11, opacity: n.review ? 1 : 0.35 }}>🔖</button>
+                                          <button onClick={() => startEditNote(n)} style={{ background: "none", border: "none", padding: 0, fontSize: 10.5, color: COLORS.bordo, opacity: 0.65 }}>✎</button>
                                           <button onClick={() => deleteLawNote(law.code, n.id)} style={{ background: "none", border: "none", fontSize: 10.5, color: COLORS.bordo, opacity: 0.5, padding: 0 }}>sil</button>
                                         </div>
                                       </div>
@@ -1441,41 +1253,23 @@
                                   ))}
                                 </div>
                               )}
-                              {onlyFlaggedNotes && notes.length === 0 && allNotes.length > 0 && (
-                                <div style={{ fontSize: 11.5, color: COLORS.bordo, opacity: 0.7, margin: "10px 0" }}>Bu kanunda "tekrar et" işaretli not yok.</div>
-                              )}
-
+                              
                               <input placeholder="Madde no (örn. m. 683)" value={noteDraft.madde} onChange={(e) => setNoteDraft({ ...noteDraft, madde: e.target.value })} style={{ width: "100%", padding: "8px 10px", borderRadius: 5, border: `1px solid ${COLORS.line}`, marginTop: 8, marginBottom: 6, fontSize: 12.5 }} />
                               <textarea placeholder="Maddeyle ilgili ders / sınav notunu ekle..." value={noteDraft.text} onChange={(e) => setNoteDraft({ ...noteDraft, text: e.target.value })} style={{ width: "100%", padding: "8px 10px", borderRadius: 5, border: `1px solid ${COLORS.line}`, marginBottom: 6, fontSize: 12.5, minHeight: 44, resize: "vertical" }} />
 
                               <div style={{ display: "flex", gap: 5, flexWrap: "wrap", marginBottom: 6 }}>
                                 {NOTE_COLORS.map((c) => (
-                                  <button key={c.key} onClick={() => setNoteDraft({ ...noteDraft, color: c.key })} style={{
-                                    padding: "5px 9px", borderRadius: 999, fontSize: 10.5, fontWeight: 600,
-                                    border: `1.5px solid ${c.color}`,
-                                    background: noteDraft.color === c.key ? c.color : "transparent",
-                                    color: noteDraft.color === c.key ? "#fff" : COLORS.charcoal,
-                                  }}>{c.label}</button>
+                                  <button key={c.key} onClick={() => setNoteDraft({ ...noteDraft, color: c.key })} style={{ padding: "5px 9px", borderRadius: 999, fontSize: 10.5, fontWeight: 600, border: `1.5px solid ${c.color}`, background: noteDraft.color === c.key ? c.color : "transparent", color: noteDraft.color === c.key ? "#fff" : COLORS.charcoal }}>{c.label}</button>
                                 ))}
                               </div>
 
-                              <button onClick={() => setNoteDraft({ ...noteDraft, review: !noteDraft.review })} style={{
-                                width: "100%", padding: "7px 0", borderRadius: 5, marginBottom: 6, fontSize: 11.5, fontWeight: 600,
-                                border: `1px dashed ${noteDraft.review ? COLORS.rust : COLORS.line}`,
-                                background: "transparent",
-                                color: noteDraft.review ? COLORS.rust : COLORS.charcoal,
-                              }}>
+                              <button onClick={() => setNoteDraft({ ...noteDraft, review: !noteDraft.review })} style={{ width: "100%", padding: "7px 0", borderRadius: 5, marginBottom: 6, fontSize: 11.5, fontWeight: 600, border: `1px dashed ${noteDraft.review ? COLORS.rust : COLORS.line}`, background: "transparent", color: noteDraft.review ? COLORS.rust : COLORS.charcoal }}>
                                 {noteDraft.review ? "🔖 Tekrar et olarak işaretli" : "🔖 Tekrar et olarak işaretle"}
                               </button>
 
-                              {editingNoteId && (
-                                <div style={{ fontSize: 10.5, fontWeight: 700, color: COLORS.bordo, marginBottom: 6 }}>✎ Not düzenleniyor</div>
-                              )}
                               <div style={{ display: "flex", gap: 8 }}>
                                 <button onClick={() => addLawNote(law.code)} style={{ flex: 1, padding: "9px 0", borderRadius: 5, border: "none", background: COLORS.ink, color: "#fff", fontWeight: 600, fontSize: 12.5 }}>{editingNoteId ? "Notu Güncelle" : "Notu Kaydet"}</button>
-                                {editingNoteId && (
-                                  <button onClick={cancelNoteEdit} style={{ flex: 1, padding: "9px 0", borderRadius: 5, border: `1px solid ${COLORS.line}`, background: "transparent", color: COLORS.charcoal, fontSize: 12.5 }}>İptal</button>
-                                )}
+                                {editingNoteId && <button onClick={cancelNoteEdit} style={{ flex: 1, padding: "9px 0", borderRadius: 5, border: `1px solid ${COLORS.line}`, background: "transparent", color: COLORS.charcoal, fontSize: 12.5 }}>İptal</button>}
                               </div>
                             </div>
                           )}
@@ -1489,34 +1283,17 @@
               {/* ---- MADDE HARİTASI ---- */}
               {lawSubTab === "harita" && !selectedArticle && (
                 <>
-                  <div style={{ fontSize: 12, color: COLORS.bordo, opacity: 0.8, marginBottom: 12, lineHeight: 1.45 }}>
-                    Fişlerin, olayların, notların ve içtihatların içinde geçen madde numaraları otomatik toplanır. Bir maddeye dokun, ona bağlı her şeyi tek ekranda gör.
-                  </div>
-
-                  <input
-                    placeholder="Madde ara (örn. TMK 683)"
-                    value={articleSearch}
-                    onChange={(e) => setArticleSearch(e.target.value)}
-                    style={{ width: "100%", padding: "10px 12px", borderRadius: 6, border: `1px solid ${COLORS.line}`, marginBottom: 14, fontSize: 13, background: COLORS.surface }}
-                  />
-
+                  <input placeholder="Madde ara (örn. TMK 683)" value={articleSearch} onChange={(e) => setArticleSearch(e.target.value)} style={{ width: "100%", padding: "10px 12px", borderRadius: 6, border: `1px solid ${COLORS.line}`, marginBottom: 14, fontSize: 13, background: COLORS.surface }} />
                   {articleRefList.length === 0 ? (
                     <div style={{ textAlign: "center", padding: "40px 16px", color: COLORS.bordo, opacity: 0.8 }}>
                       <div style={{ fontFamily: "'Fraunces', serif", fontSize: 16, marginBottom: 8 }}>Henüz bağlanmış madde yok</div>
-                      <div style={{ fontSize: 12.5, lineHeight: 1.5 }}>
-                        Fiş, olay veya notlarında "TMK 683" gibi bir madde yazdığında burada otomatik görünür.
-                      </div>
                     </div>
                   ) : (
                     <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
                       {articleRefList.map((ref) => {
-                        const e = articleIndex[ref];
-                        const total = e.cards.length + e.cases.length + e.notes.length + e.precedents.length;
+                        const e = articleIndex[ref]; const total = e.cards.length + e.cases.length + e.notes.length + e.precedents.length;
                         return (
-                          <button key={ref} onClick={() => setSelectedArticle(ref)} style={{
-                            padding: "9px 13px", borderRadius: 6, border: `1px solid ${COLORS.line}`, background: COLORS.surface,
-                            display: "flex", alignItems: "center", gap: 7,
-                          }}>
+                          <button key={ref} onClick={() => setSelectedArticle(ref)} style={{ padding: "9px 13px", borderRadius: 6, border: `1px solid ${COLORS.line}`, background: COLORS.surface, display: "flex", alignItems: "center", gap: 7 }}>
                             <span style={{ fontFamily: "'Fraunces', serif", fontSize: 13.5, fontWeight: 700, color: COLORS.heading }}>{ref}</span>
                             <span style={{ fontSize: 10, fontWeight: 700, color: "#fff", background: COLORS.bordo, borderRadius: 999, padding: "2px 6px" }}>{total}</span>
                           </button>
@@ -1531,14 +1308,9 @@
                 const e = articleIndex[selectedArticle] || { cards: [], cases: [], notes: [], precedents: [] };
                 return (
                   <div>
-                    <button onClick={() => setSelectedArticle(null)} style={{ background: "none", border: "none", color: COLORS.bordo, fontSize: 13, fontWeight: 600, marginBottom: 10, padding: 0 }}>
-                      ← Tüm maddeler
-                    </button>
+                    <button onClick={() => setSelectedArticle(null)} style={{ background: "none", border: "none", color: COLORS.bordo, fontSize: 13, fontWeight: 600, marginBottom: 10, padding: 0 }}>← Tüm maddeler</button>
                     <div style={{ fontFamily: "'Fraunces', serif", fontSize: 24, fontWeight: 700, color: COLORS.heading, marginBottom: 4 }}>{selectedArticle}</div>
-                    <div style={{ fontSize: 11.5, color: COLORS.bordo, marginBottom: 16 }}>
-                      {e.cards.length} fiş · {e.cases.length} olay · {e.notes.length} not · {e.precedents.length} içtihat
-                    </div>
-
+                    
                     {[
                       ["📇 FİŞLER", e.cards, (c) => (
                         <div key={c.id} style={{ background: COLORS.surface, border: `1px solid ${COLORS.line}`, borderRadius: 6, padding: "11px 13px" }}>
@@ -1551,24 +1323,17 @@
                         <div key={c.id} style={{ background: COLORS.surface, border: `1px solid ${COLORS.line}`, borderRadius: 6, padding: "11px 13px" }}>
                           <div style={{ fontSize: 10, fontWeight: 700, color: COLORS.bordo, marginBottom: 3 }}>{(c.course || "").toUpperCase()}</div>
                           <div style={{ fontSize: 13, fontWeight: 600, color: COLORS.heading, lineHeight: 1.35 }}>{c.title}</div>
-                          {c.legalIssue && <div style={{ fontSize: 12, color: COLORS.rust, marginTop: 4 }}>❓ {c.legalIssue}</div>}
                         </div>
                       )],
                       ["✍️ NOTLAR", e.notes, (n) => (
                         <div key={n.id + n.code} style={{ background: COLORS.surface, border: `1px solid ${COLORS.line}`, borderLeft: `4px solid ${getNoteColor(n.color)}`, borderRadius: 6, padding: "11px 13px" }}>
-                          <div style={{ fontSize: 11, fontWeight: 700, color: COLORS.bordo, marginBottom: 3 }}>
-                            {n.code} {n.madde}
-                            {n.review && <span style={{ marginLeft: 6, fontSize: 9, fontWeight: 700, color: "#fff", background: COLORS.rust, borderRadius: 999, padding: "2px 6px" }}>TEKRAR</span>}
-                          </div>
+                          <div style={{ fontSize: 11, fontWeight: 700, color: COLORS.bordo, marginBottom: 3 }}>{n.code} {n.madde}</div>
                           <div style={{ fontSize: 12.5, color: COLORS.charcoal, lineHeight: 1.4 }}>{n.text}</div>
                         </div>
                       )],
                       ["🏛️ İÇTİHATLAR", e.precedents, (p) => (
                         <div key={p.id} style={{ background: COLORS.surface, border: `1px solid ${COLORS.line}`, borderRadius: 6, padding: "11px 13px" }}>
-                          <div style={{ fontSize: 10, fontWeight: 700, color: COLORS.bordo, marginBottom: 3 }}>
-                            {p.court}{p.caseNo ? ` · ${p.caseNo}` : ""}
-                          </div>
-                          {p.topic && <div style={{ fontSize: 12.5, fontWeight: 600, color: COLORS.heading }}>{p.topic}</div>}
+                          <div style={{ fontSize: 10, fontWeight: 700, color: COLORS.bordo, marginBottom: 3 }}>{p.court}{p.caseNo ? ` · ${p.caseNo}` : ""}</div>
                           <div style={{ fontSize: 12, color: COLORS.charcoal, opacity: 0.8, marginTop: 4, lineHeight: 1.4 }}>{p.summary}</div>
                         </div>
                       )],
@@ -1576,9 +1341,7 @@
                       items.length > 0 && (
                         <div key={label} style={{ marginBottom: 16 }}>
                           <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: 0.6, color: COLORS.bordo, marginBottom: 7 }}>{label}</div>
-                          <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
-                            {items.map(render)}
-                          </div>
+                          <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>{items.map(render)}</div>
                         </div>
                       )
                     ))}
@@ -1593,50 +1356,28 @@
             <div style={{ padding: "18px 20px" }}>
               <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 10, marginBottom: 6 }}>
                 {["Tümü", ...topics].map((t) => (
-                  <button key={t} onClick={() => setSelectedTopic(t)} style={{
-                    flexShrink: 0, padding: "6px 14px", borderRadius: 999, fontSize: 12.5, fontWeight: 500,
-                    border: `1px solid ${selectedTopic === t ? COLORS.bordo : COLORS.line}`,
-                    background: selectedTopic === t ? COLORS.bordo : "transparent",
-                    color: selectedTopic === t ? "#fff" : COLORS.charcoal,
-                  }}>{t}</button>
+                  <button key={t} onClick={() => setSelectedTopic(t)} style={{ flexShrink: 0, padding: "6px 14px", borderRadius: 999, fontSize: 12.5, fontWeight: 500, border: `1px solid ${selectedTopic === t ? COLORS.bordo : COLORS.line}`, background: selectedTopic === t ? COLORS.bordo : "transparent", color: selectedTopic === t ? "#fff" : COLORS.charcoal }}>{t}</button>
                 ))}
               </div>
 
               <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
-                <button onClick={startQuiz} style={{ flex: 1, padding: "11px 0", borderRadius: 6, border: `1px solid ${COLORS.gold}`, background: COLORS.surface, color: COLORS.heading, fontWeight: 700, fontSize: 13 }}>
-                  🎯 Karışık Deneme Başlat
-                </button>
-                <button onClick={() => saveAudioMode(!audioMode)} title="Sesli oku" style={{
-                  width: 46, borderRadius: 6, flexShrink: 0,
-                  border: `1px solid ${audioMode ? COLORS.bordo : COLORS.line}`,
-                  background: audioMode ? COLORS.bordo : "#fff",
-                  fontSize: 16,
-                }}>
-                  {audioMode ? "🔊" : "🔈"}
-                </button>
+                <button onClick={startQuiz} style={{ flex: 1, padding: "11px 0", borderRadius: 6, border: `1px solid ${COLORS.gold}`, background: COLORS.surface, color: COLORS.heading, fontWeight: 700, fontSize: 13 }}>🎯 Karışık Deneme Başlat</button>
+                <button onClick={() => saveAudioMode(!audioMode)} style={{ width: 46, borderRadius: 6, flexShrink: 0, border: `1px solid ${audioMode ? COLORS.bordo : COLORS.line}`, background: audioMode ? COLORS.bordo : "#fff", fontSize: 16 }}>{audioMode ? "🔊" : "🔈"}</button>
               </div>
 
               {queue.length === 0 ? (
                 <div style={{ textAlign: "center", padding: "60px 20px", color: COLORS.bordo, opacity: 0.8 }}>
                   <div style={{ fontFamily: "'Fraunces', serif", fontSize: 18, marginBottom: 6 }}>Bu konuda henüz fiş yok</div>
-                  <div style={{ fontSize: 13 }}>'Konular' sekmesinden yeni fiş ekleyebilirsiniz.</div>
                 </div>
               ) : (
                 <>
-                  <div style={{ fontSize: 11.5, color: COLORS.bordo, textAlign: "right", marginBottom: 8, fontWeight: 500 }}>
-                    MADDE {String((cursor % queue.length) + 1).padStart(2, "0")} / {String(queue.length).padStart(2, "0")}
-                  </div>
+                  <div style={{ fontSize: 11.5, color: COLORS.bordo, textAlign: "right", marginBottom: 8, fontWeight: 500 }}>MADDE {String((cursor % queue.length) + 1).padStart(2, "0")} / {String(queue.length).padStart(2, "0")}</div>
                   <div onClick={() => setFlipped((f) => !f)} style={{ perspective: 1200, height: 260, cursor: "pointer", position: "relative" }}>
-                    <button onClick={(e) => { e.stopPropagation(); speak(flipped ? current.back : current.front); }} title="Sesli dinle" style={{
-                      position: "absolute", top: 10, right: 10, zIndex: 5, width: 30, height: 30, borderRadius: 999,
-                      border: "none", background: "rgba(255,255,255,0.85)", fontSize: 14,
-                    }}>🔊</button>
                     <div className={`fiş-inner${flipped ? " flipped" : ""}`}>
                       <div className="fiş-front" style={{ background: COLORS.surface, border: `1px solid ${COLORS.line}`, boxShadow: "0 4px 14px rgba(28,43,74,0.06)" }}>
                         <div style={{ position: "absolute", top: 0, left: 0, bottom: 0, width: 5, background: COLORS.gold, borderRadius: "6px 0 0 6px" }} />
                         <div style={{ fontSize: 10.5, color: COLORS.bordo, fontWeight: 600, letterSpacing: 0.5, marginBottom: 10 }}>{current.topic.toUpperCase()}</div>
                         <div style={{ fontFamily: "'Fraunces', serif", fontSize: 18, fontWeight: 600, color: COLORS.heading, lineHeight: 1.4 }}>{current.front}</div>
-                        <div style={{ position: "absolute", bottom: 14, right: 18, fontSize: 11, color: COLORS.bordo, opacity: 0.6 }}>çevirmek için dokun ↻</div>
                       </div>
                       <div className="fiş-back" style={{ background: COLORS.ink, boxShadow: "0 4px 14px rgba(28,43,74,0.18)" }}>
                         <div style={{ position: "absolute", top: 0, left: 0, bottom: 0, width: 5, background: COLORS.gold, borderRadius: "6px 0 0 6px" }} />
@@ -1654,26 +1395,15 @@
                     </div>
                   )}
 
-                  {!flipped && (
-                    <div style={{ textAlign: "center", marginTop: 18, fontSize: 12.5, color: COLORS.bordo, opacity: 0.7 }}>
-                      Bugün toplam {todayReviewedCount} fiş gözden geçirildi
-                    </div>
-                  )}
-
                   <div style={{ display: "flex", justifyContent: "center", gap: 16, marginTop: 20 }}>
-                    <button onClick={() => startEditCard(current)} style={{ background: "none", border: "none", fontSize: 12, color: COLORS.bordo, opacity: 0.75 }}>
-                      ✎ Düzenle
-                    </button>
-                    <button onClick={() => deleteCard(current.id)} style={{ background: "none", border: "none", fontSize: 12, color: COLORS.bordo, opacity: 0.55 }}>
-                      Bu fişi sil
-                    </button>
+                    <button onClick={() => startEditCard(current)} style={{ background: "none", border: "none", fontSize: 12, color: COLORS.bordo, opacity: 0.75 }}>✎ Düzenle</button>
+                    <button onClick={() => deleteCard(current.id)} style={{ background: "none", border: "none", fontSize: 12, color: COLORS.bordo, opacity: 0.55 }}>Bu fişi sil</button>
                   </div>
                 </>
               )}
             </div>
           )}
 
-          {/* ---- KARIŞIK DENEME MODU ---- */}
           {tab === "cards" && quizMode && quiz && (
             <div style={{ padding: "18px 20px" }}>
               {!quiz.finished ? (
@@ -1693,10 +1423,7 @@
                       if (quiz.answered && isCorrectOpt) { bg = "#E9EFE9"; border = COLORS.green; color = COLORS.green; }
                       else if (quiz.answered && isPicked) { bg = "#F3E3D9"; border = COLORS.rust; color = COLORS.rust; }
                       return (
-                        <button key={idx} onClick={() => answerQuiz(opt)} disabled={quiz.answered}
-                          style={{ textAlign: "left", padding: "13px 15px", borderRadius: 6, border: `1px solid ${border}`, background: bg, color, fontSize: 13.5, lineHeight: 1.4 }}>
-                          {opt}
-                        </button>
+                        <button key={idx} onClick={() => answerQuiz(opt)} disabled={quiz.answered} style={{ textAlign: "left", padding: "13px 15px", borderRadius: 6, border: `1px solid ${border}`, background: bg, color, fontSize: 13.5, lineHeight: 1.4 }}>{opt}</button>
                       );
                     })}
                   </div>
@@ -1709,10 +1436,7 @@
               ) : (
                 <div style={{ textAlign: "center", padding: "40px 10px" }}>
                   <div style={{ fontFamily: "'Fraunces', serif", fontSize: 40, fontWeight: 700, color: COLORS.bordo }}>{quiz.score}/{quiz.questions.length}</div>
-                  <div style={{ fontSize: 13, color: COLORS.charcoal, opacity: 0.75, marginTop: 4, marginBottom: 20 }}>
-                    {selectedTopic === "Tümü" ? "Tüm konular" : selectedTopic}
-                  </div>
-                  <div style={{ display: "flex", gap: 8, justifyContent: "center" }}>
+                  <div style={{ display: "flex", gap: 8, justifyContent: "center", marginTop: 20 }}>
                     <button onClick={startQuiz} style={{ padding: "12px 20px", borderRadius: 6, border: `1px solid ${COLORS.line}`, background: COLORS.surface, color: COLORS.heading, fontWeight: 600, fontSize: 13.5 }}>Tekrar Dene</button>
                     <button onClick={exitQuiz} style={{ padding: "12px 20px", borderRadius: 6, border: "none", background: COLORS.ink, color: "#fff", fontWeight: 600, fontSize: 13.5 }}>Fişlere Dön</button>
                   </div>
@@ -1721,68 +1445,41 @@
             </div>
           )}
 
-          {/* ---- PRATİK / OLAY ÇÖZME TAB ---- */}
+          {/* ---- PRATİK TAB ---- */}
           {tab === "pratik" && (
             <div style={{ padding: "18px 20px" }}>
               <div style={{ display: "flex", gap: 6, marginBottom: 14 }}>
                 {[["olaylar", "Olaylar"], ["ictihat", "İçtihat"]].map(([key, label]) => (
-                  <button key={key} onClick={() => setPratikSubTab(key)} style={{
-                    flex: 1, padding: "8px 0", borderRadius: 6, fontSize: 12.5, fontWeight: 600,
-                    border: `1px solid ${pratikSubTab === key ? COLORS.bordo : COLORS.line}`,
-                    background: pratikSubTab === key ? COLORS.bordo : "#fff",
-                    color: pratikSubTab === key ? "#fff" : COLORS.charcoal,
-                  }}>{label}</button>
+                  <button key={key} onClick={() => setPratikSubTab(key)} style={{ flex: 1, padding: "8px 0", borderRadius: 6, fontSize: 12.5, fontWeight: 600, border: `1px solid ${pratikSubTab === key ? COLORS.bordo : COLORS.line}`, background: pratikSubTab === key ? COLORS.bordo : "#fff", color: pratikSubTab === key ? "#fff" : COLORS.charcoal }}>{label}</button>
                 ))}
               </div>
 
               {pratikSubTab === "olaylar" && (
               <>
-              <div style={{ fontSize: 12, color: COLORS.bordo, opacity: 0.8, marginBottom: 14 }}>
-                Sınavlara hazırlık için pratik olay metinleri ve adım adım hukuki çözümler.
-              </div>
-
               <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 14 }}>
                 {cases.map((c) => {
                   const isOpen = openCaseId === c.id;
                   return (
                     <div key={c.id} style={{ background: COLORS.surface, border: `1px solid ${COLORS.line}`, borderRadius: 6, padding: 16 }}>
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 4 }}>
-                        <div style={{ fontSize: 10.5, fontWeight: 700, color: COLORS.bordo, letterSpacing: 0.5 }}>
-                          {c.course.toUpperCase()}
-                        </div>
+                        <div style={{ fontSize: 10.5, fontWeight: 700, color: COLORS.bordo, letterSpacing: 0.5 }}>{c.course.toUpperCase()}</div>
                         <div style={{ display: "flex", gap: 10 }}>
                           <button onClick={() => startEditCase(c)} style={{ background: "none", border: "none", fontSize: 11, color: COLORS.bordo, opacity: 0.65, padding: 0 }}>düzenle</button>
                           <button onClick={() => deleteCase(c.id)} style={{ background: "none", border: "none", fontSize: 11, color: COLORS.bordo, opacity: 0.5, padding: 0 }}>sil</button>
                         </div>
                       </div>
-                      <div style={{ fontFamily: "'Fraunces', serif", fontSize: 16, fontWeight: 600, color: COLORS.heading, marginBottom: 8 }}>
-                        {c.title}
-                      </div>
-                      <div style={{ fontSize: 13, color: COLORS.charcoal, lineHeight: 1.45, marginBottom: 10, background: COLORS.parchment, padding: 10, borderRadius: 4 }}>
-                        <strong>Olay:</strong> {c.factPattern}
-                      </div>
-                      <div style={{ fontSize: 12.5, fontWeight: 600, color: COLORS.rust, marginBottom: 10 }}>
-                        ❓ Hukuki Sorun: {c.legalIssue}
-                      </div>
+                      <div style={{ fontFamily: "'Fraunces', serif", fontSize: 16, fontWeight: 600, color: COLORS.heading, marginBottom: 8 }}>{c.title}</div>
+                      <div style={{ fontSize: 13, color: COLORS.charcoal, lineHeight: 1.45, marginBottom: 10, background: COLORS.parchment, padding: 10, borderRadius: 4 }}><strong>Olay:</strong> {c.factPattern}</div>
+                      <div style={{ fontSize: 12.5, fontWeight: 600, color: COLORS.rust, marginBottom: 10 }}>❓ Hukuki Sorun: {c.legalIssue}</div>
 
                       {isOpen ? (
                         <div style={{ borderTop: `1px solid ${COLORS.line}`, paddingTop: 10, marginTop: 10 }}>
-                          {c.statute && (
-                            <div style={{ fontSize: 11.5, fontWeight: 700, color: COLORS.green, marginBottom: 4 }}>
-                              İlgili Mevzuat: {c.statute}
-                            </div>
-                          )}
-                          <div style={{ fontSize: 13, color: COLORS.heading, lineHeight: 1.5 }}>
-                            <strong>Çözüm &amp; Gerekçe:</strong> {c.solution}
-                          </div>
-                          <button onClick={() => setOpenCaseId(null)} style={{ background: "none", border: "none", color: COLORS.bordo, fontSize: 12, fontWeight: 600, marginTop: 10, padding: 0 }}>
-                            ▲ Çözümü Gizle
-                          </button>
+                          {c.statute && <div style={{ fontSize: 11.5, fontWeight: 700, color: COLORS.green, marginBottom: 4 }}>İlgili Mevzuat: {c.statute}</div>}
+                          <div style={{ fontSize: 13, color: COLORS.heading, lineHeight: 1.5 }}><strong>Çözüm &amp; Gerekçe:</strong> {c.solution}</div>
+                          <button onClick={() => setOpenCaseId(null)} style={{ background: "none", border: "none", color: COLORS.bordo, fontSize: 12, fontWeight: 600, marginTop: 10, padding: 0 }}>▲ Çözümü Gizle</button>
                         </div>
                       ) : (
-                        <button onClick={() => setOpenCaseId(c.id)} style={{ width: "100%", padding: "9px 0", borderRadius: 5, border: `1px solid ${COLORS.line}`, background: COLORS.parchment, color: COLORS.heading, fontWeight: 600, fontSize: 12.5 }}>
-                          ▼ Çözümü ve Gerekçeyi Gör
-                        </button>
+                        <button onClick={() => setOpenCaseId(c.id)} style={{ width: "100%", padding: "9px 0", borderRadius: 5, border: `1px solid ${COLORS.line}`, background: COLORS.parchment, color: COLORS.heading, fontWeight: 600, fontSize: 12.5 }}>▼ Çözümü Gör</button>
                       )}
                     </div>
                   );
@@ -1790,22 +1487,10 @@
               </div>
 
               {!showCaseForm ? (
-                <button onClick={() => setShowCaseForm(true)} style={{ width: "100%", padding: "13px 0", borderRadius: 6, border: `1px dashed ${COLORS.bordo}`, background: "transparent", color: COLORS.bordo, fontWeight: 600, fontSize: 13.5 }}>
-                  + Yeni Olay Ekle
-                </button>
+                <button onClick={() => setShowCaseForm(true)} style={{ width: "100%", padding: "13px 0", borderRadius: 6, border: `1px dashed ${COLORS.bordo}`, background: "transparent", color: COLORS.bordo, fontWeight: 600, fontSize: 13.5 }}>+ Yeni Olay Ekle</button>
               ) : (
                 <div style={{ background: COLORS.surface, border: `1px solid ${COLORS.line}`, borderRadius: 6, padding: 16 }}>
                   <div style={{ fontWeight: 600, fontSize: 13.5, color: COLORS.heading, marginBottom: 10 }}>{editingCaseId ? "Olayı Düzenle" : "Yeni Olay"}</div>
-                  <div style={{ display: "flex", gap: 6, overflowX: "auto", marginBottom: 8, paddingBottom: 2 }}>
-                    {COURSES.map((c) => (
-                      <button key={c} onClick={() => setCaseForm({ ...caseForm, course: c })} style={{
-                        flexShrink: 0, padding: "6px 12px", borderRadius: 999, fontSize: 11.5, fontWeight: 600,
-                        border: `1px solid ${caseForm.course === c ? COLORS.bordo : COLORS.line}`,
-                        background: caseForm.course === c ? COLORS.bordo : "transparent",
-                        color: caseForm.course === c ? "#fff" : COLORS.charcoal,
-                      }}>{c}</button>
-                    ))}
-                  </div>
                   <input placeholder="Başlık" value={caseForm.title} onChange={(e) => setCaseForm({ ...caseForm, title: e.target.value })} style={{ width: "100%", padding: "10px 12px", borderRadius: 5, border: `1px solid ${COLORS.line}`, marginBottom: 8, fontSize: 13.5 }} />
                   <textarea placeholder="Olay metni" value={caseForm.factPattern} onChange={(e) => setCaseForm({ ...caseForm, factPattern: e.target.value })} style={{ width: "100%", padding: "10px 12px", borderRadius: 5, border: `1px solid ${COLORS.line}`, marginBottom: 8, fontSize: 13.5, minHeight: 60, resize: "vertical" }} />
                   <input placeholder="Hukuki sorun (soru cümlesi)" value={caseForm.legalIssue} onChange={(e) => setCaseForm({ ...caseForm, legalIssue: e.target.value })} style={{ width: "100%", padding: "10px 12px", borderRadius: 5, border: `1px solid ${COLORS.line}`, marginBottom: 8, fontSize: 13.5 }} />
@@ -1813,114 +1498,55 @@
                   <textarea placeholder="Çözüm ve gerekçe" value={caseForm.solution} onChange={(e) => setCaseForm({ ...caseForm, solution: e.target.value })} style={{ width: "100%", padding: "10px 12px", borderRadius: 5, border: `1px solid ${COLORS.line}`, marginBottom: 12, fontSize: 13.5, minHeight: 60, resize: "vertical" }} />
                   <div style={{ display: "flex", gap: 8 }}>
                     <button onClick={addCase} style={{ flex: 1, padding: "11px 0", borderRadius: 5, border: "none", background: COLORS.ink, color: "#fff", fontWeight: 600, fontSize: 13.5 }}>{editingCaseId ? "Güncelle" : "Kaydet"}</button>
-                    <button onClick={() => (editingCaseId ? cancelCaseEdit() : setShowCaseForm(false))} style={{ flex: 1, padding: "11px 0", borderRadius: 5, border: `1px solid ${COLORS.line}`, background: "transparent", color: COLORS.charcoal, fontSize: 13.5 }}>{editingCaseId ? "İptal" : "Kapat"}</button>
+                    <button onClick={() => (editingCaseId ? cancelCaseEdit() : setShowCaseForm(false))} style={{ flex: 1, padding: "11px 0", borderRadius: 5, border: `1px solid ${COLORS.line}`, background: "transparent", color: COLORS.charcoal, fontSize: 13.5 }}>İptal</button>
                   </div>
                 </div>
               )}
               </>
               )}
 
-              {/* ---- İÇTİHAT KÜTÜPHANESİ ---- */}
               {pratikSubTab === "ictihat" && (
               <>
-                <div style={{ fontSize: 12, color: COLORS.bordo, opacity: 0.8, marginBottom: 10, lineHeight: 1.45 }}>
-                  Önemli kararların özetlerini konu etiketiyle biriktir. Mevzuat alanına madde yazarsan karar, Madde Haritası'nda da görünür.
-                </div>
+                {precedents.length > 0 && <input placeholder="Karar, konu veya madde ara..." value={precedentSearch} onChange={(e) => setPrecedentSearch(e.target.value)} style={{ width: "100%", padding: "10px 12px", borderRadius: 6, border: `1px solid ${COLORS.line}`, marginBottom: 12, fontSize: 13, background: COLORS.surface }} />}
 
-                <div style={{ background: COLORS.surface, border: `1px solid ${COLORS.line}`, borderRadius: 6, padding: "10px 13px", marginBottom: 12, display: "flex", gap: 8, alignItems: "flex-start" }}>
-                  <span style={{ fontSize: 15 }}>🔎</span>
-                  <div style={{ fontSize: 11, color: COLORS.charcoal, opacity: 0.8, lineHeight: 1.45 }}>
-                    Kararları <a href="https://karararama.yargitay.gov.tr" target="_blank" rel="noreferrer" style={{ color: COLORS.bordo, fontWeight: 600 }}>Yargıtay Karar Arama</a>, <a href="https://karararama.danistay.gov.tr" target="_blank" rel="noreferrer" style={{ color: COLORS.bordo, fontWeight: 600 }}>Danıştay</a> ve <a href="https://kararlarbilgibankasi.anayasa.gov.tr" target="_blank" rel="noreferrer" style={{ color: COLORS.bordo, fontWeight: 600 }}>AYM Kararlar Bilgi Bankası</a>'ndan bulup kendi özetinle ekle — böylece esas/karar numaraları güvenilir olur.
-                  </div>
-                </div>
-
-                {precedents.length > 0 && (
-                  <input
-                    placeholder="Karar, konu veya madde ara..."
-                    value={precedentSearch}
-                    onChange={(e) => setPrecedentSearch(e.target.value)}
-                    style={{ width: "100%", padding: "10px 12px", borderRadius: 6, border: `1px solid ${COLORS.line}`, marginBottom: 12, fontSize: 13, background: COLORS.surface }}
-                  />
-                )}
-
-                {precedents.length === 0 ? (
-                  <div style={{ textAlign: "center", padding: "30px 16px", color: COLORS.bordo, opacity: 0.8, marginBottom: 14 }}>
-                    <div style={{ fontFamily: "'Fraunces', serif", fontSize: 16, marginBottom: 6 }}>Kütüphane boş</div>
-                    <div style={{ fontSize: 12.5, lineHeight: 1.5 }}>Aşağıdan ilk kararını ekleyerek başla.</div>
-                  </div>
-                ) : (
-                  <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 14 }}>
-                    {precedents
-                      .filter((p) => {
-                        const q = precedentSearch.trim().toLowerCase();
-                        if (!q) return true;
-                        return [p.court, p.caseNo, p.topic, p.statute, p.summary]
-                          .filter(Boolean).join(" ").toLowerCase().includes(q);
-                      })
-                      .map((p) => {
-                        const isOpen = openPrecedentId === p.id;
-                        return (
-                          <div key={p.id} style={{ background: COLORS.surface, border: `1px solid ${COLORS.line}`, borderRadius: 6, padding: "13px 15px" }}>
-                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
-                              <div style={{ fontSize: 10.5, fontWeight: 700, color: COLORS.bordo, letterSpacing: 0.4 }}>
-                                {p.court.toUpperCase()}{p.caseNo ? ` · ${p.caseNo}` : ""}{p.date ? ` · ${p.date}` : ""}
-                              </div>
-                              <div style={{ display: "flex", gap: 10, flexShrink: 0 }}>
-                                <button onClick={() => startEditPrecedent(p)} style={{ background: "none", border: "none", fontSize: 11, color: COLORS.bordo, opacity: 0.65, padding: 0 }}>düzenle</button>
-                                <button onClick={() => deletePrecedent(p.id)} style={{ background: "none", border: "none", fontSize: 11, color: COLORS.bordo, opacity: 0.5, padding: 0 }}>sil</button>
-                              </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 14 }}>
+                  {precedents.filter((p) => { const q = precedentSearch.trim().toLowerCase(); if (!q) return true; return [p.court, p.caseNo, p.topic, p.statute, p.summary].filter(Boolean).join(" ").toLowerCase().includes(q); }).map((p) => {
+                      const isOpen = openPrecedentId === p.id;
+                      return (
+                        <div key={p.id} style={{ background: COLORS.surface, border: `1px solid ${COLORS.line}`, borderRadius: 6, padding: "13px 15px" }}>
+                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
+                            <div style={{ fontSize: 10.5, fontWeight: 700, color: COLORS.bordo }}>{p.court.toUpperCase()}{p.caseNo ? ` · ${p.caseNo}` : ""}</div>
+                            <div style={{ display: "flex", gap: 10, flexShrink: 0 }}>
+                              <button onClick={() => startEditPrecedent(p)} style={{ background: "none", border: "none", fontSize: 11, color: COLORS.bordo, opacity: 0.65, padding: 0 }}>düzenle</button>
+                              <button onClick={() => deletePrecedent(p.id)} style={{ background: "none", border: "none", fontSize: 11, color: COLORS.bordo, opacity: 0.5, padding: 0 }}>sil</button>
                             </div>
-
-                            {p.topic && (
-                              <div style={{ fontFamily: "'Fraunces', serif", fontSize: 15, fontWeight: 600, color: COLORS.heading, marginTop: 5, lineHeight: 1.3 }}>{p.topic}</div>
-                            )}
-
-                            {p.statute && (
-                              <div style={{ display: "inline-block", marginTop: 6, fontSize: 10.5, fontWeight: 600, color: COLORS.green, background: "#E9EFE9", borderRadius: 4, padding: "3px 7px" }}>
-                                {p.statute}
-                              </div>
-                            )}
-
-                            <div style={{ fontSize: 12.5, color: COLORS.charcoal, lineHeight: 1.45, marginTop: 7, maxHeight: isOpen ? "none" : 58, overflow: "hidden" }}>
-                              {p.summary}
-                            </div>
-
-                            {p.summary.length > 140 && (
-                              <button onClick={() => setOpenPrecedentId(isOpen ? null : p.id)} style={{ background: "none", border: "none", color: COLORS.bordo, fontSize: 11.5, fontWeight: 600, marginTop: 6, padding: 0 }}>
-                                {isOpen ? "▲ Kısalt" : "▼ Tümünü oku"}
-                              </button>
-                            )}
                           </div>
-                        );
-                      })}
-                  </div>
-                )}
+                          {p.topic && <div style={{ fontFamily: "'Fraunces', serif", fontSize: 15, fontWeight: 600, color: COLORS.heading, marginTop: 5 }}>{p.topic}</div>}
+                          {p.statute && <div style={{ display: "inline-block", marginTop: 6, fontSize: 10.5, fontWeight: 600, color: COLORS.green, background: "#E9EFE9", borderRadius: 4, padding: "3px 7px" }}>{p.statute}</div>}
+                          <div style={{ fontSize: 12.5, color: COLORS.charcoal, lineHeight: 1.45, marginTop: 7, maxHeight: isOpen ? "none" : 58, overflow: "hidden" }}>{p.summary}</div>
+                          {p.summary.length > 140 && <button onClick={() => setOpenPrecedentId(isOpen ? null : p.id)} style={{ background: "none", border: "none", color: COLORS.bordo, fontSize: 11.5, fontWeight: 600, marginTop: 6, padding: 0 }}>{isOpen ? "▲ Kısalt" : "▼ Tümünü oku"}</button>}
+                        </div>
+                      );
+                    })}
+                </div>
 
                 {!showPrecedentForm ? (
-                  <button onClick={() => setShowPrecedentForm(true)} style={{ width: "100%", padding: "13px 0", borderRadius: 6, border: `1px dashed ${COLORS.bordo}`, background: "transparent", color: COLORS.bordo, fontWeight: 600, fontSize: 13.5 }}>
-                    + Yeni Karar Ekle
-                  </button>
+                  <button onClick={() => setShowPrecedentForm(true)} style={{ width: "100%", padding: "13px 0", borderRadius: 6, border: `1px dashed ${COLORS.bordo}`, background: "transparent", color: COLORS.bordo, fontWeight: 600, fontSize: 13.5 }}>+ Yeni Karar Ekle</button>
                 ) : (
                   <div style={{ background: COLORS.surface, border: `1px solid ${COLORS.line}`, borderRadius: 6, padding: 16 }}>
                     <div style={{ fontWeight: 600, fontSize: 13.5, color: COLORS.heading, marginBottom: 10 }}>{editingPrecedentId ? "Kararı Düzenle" : "Yeni Karar"}</div>
                     <div style={{ display: "flex", gap: 6, overflowX: "auto", marginBottom: 8, paddingBottom: 2 }}>
                       {COURTS.map((c) => (
-                        <button key={c} onClick={() => setPrecedentForm({ ...precedentForm, court: c })} style={{
-                          flexShrink: 0, padding: "6px 12px", borderRadius: 999, fontSize: 11.5, fontWeight: 600,
-                          border: `1px solid ${precedentForm.court === c ? COLORS.bordo : COLORS.line}`,
-                          background: precedentForm.court === c ? COLORS.bordo : "transparent",
-                          color: precedentForm.court === c ? "#fff" : COLORS.charcoal,
-                        }}>{c}</button>
+                        <button key={c} onClick={() => setPrecedentForm({ ...precedentForm, court: c })} style={{ flexShrink: 0, padding: "6px 12px", borderRadius: 999, fontSize: 11.5, fontWeight: 600, border: `1px solid ${precedentForm.court === c ? COLORS.bordo : COLORS.line}`, background: precedentForm.court === c ? COLORS.bordo : "transparent", color: precedentForm.court === c ? "#fff" : COLORS.charcoal }}>{c}</button>
                       ))}
                     </div>
-                    <input placeholder="Esas / Karar no (örn. 2019/1234 E., 2020/567 K.)" value={precedentForm.caseNo} onChange={(e) => setPrecedentForm({ ...precedentForm, caseNo: e.target.value })} style={{ width: "100%", padding: "10px 12px", borderRadius: 5, border: `1px solid ${COLORS.line}`, marginBottom: 8, fontSize: 13 }} />
-                    <input placeholder="Karar tarihi (opsiyonel)" value={precedentForm.date} onChange={(e) => setPrecedentForm({ ...precedentForm, date: e.target.value })} style={{ width: "100%", padding: "10px 12px", borderRadius: 5, border: `1px solid ${COLORS.line}`, marginBottom: 8, fontSize: 13 }} />
+                    <input placeholder="Esas / Karar no (örn. 2019/1234 E.)" value={precedentForm.caseNo} onChange={(e) => setPrecedentForm({ ...precedentForm, caseNo: e.target.value })} style={{ width: "100%", padding: "10px 12px", borderRadius: 5, border: `1px solid ${COLORS.line}`, marginBottom: 8, fontSize: 13 }} />
                     <input placeholder="Konu etiketi (örn. Zilyetliğin korunması)" value={precedentForm.topic} onChange={(e) => setPrecedentForm({ ...precedentForm, topic: e.target.value })} style={{ width: "100%", padding: "10px 12px", borderRadius: 5, border: `1px solid ${COLORS.line}`, marginBottom: 8, fontSize: 13 }} />
-                    <input placeholder="İlgili mevzuat (örn. TMK 683) — haritaya bağlanır" value={precedentForm.statute} onChange={(e) => setPrecedentForm({ ...precedentForm, statute: e.target.value })} style={{ width: "100%", padding: "10px 12px", borderRadius: 5, border: `1px solid ${COLORS.line}`, marginBottom: 8, fontSize: 13 }} />
-                    <textarea placeholder="Karar özeti (kendi cümlelerinle)" value={precedentForm.summary} onChange={(e) => setPrecedentForm({ ...precedentForm, summary: e.target.value })} style={{ width: "100%", padding: "10px 12px", borderRadius: 5, border: `1px solid ${COLORS.line}`, marginBottom: 12, fontSize: 13, minHeight: 80, resize: "vertical" }} />
+                    <input placeholder="İlgili mevzuat (örn. TMK 683)" value={precedentForm.statute} onChange={(e) => setPrecedentForm({ ...precedentForm, statute: e.target.value })} style={{ width: "100%", padding: "10px 12px", borderRadius: 5, border: `1px solid ${COLORS.line}`, marginBottom: 8, fontSize: 13 }} />
+                    <textarea placeholder="Karar özeti" value={precedentForm.summary} onChange={(e) => setPrecedentForm({ ...precedentForm, summary: e.target.value })} style={{ width: "100%", padding: "10px 12px", borderRadius: 5, border: `1px solid ${COLORS.line}`, marginBottom: 12, fontSize: 13, minHeight: 80, resize: "vertical" }} />
                     <div style={{ display: "flex", gap: 8 }}>
                       <button onClick={addPrecedent} style={{ flex: 1, padding: "11px 0", borderRadius: 5, border: "none", background: COLORS.ink, color: "#fff", fontWeight: 600, fontSize: 13.5 }}>{editingPrecedentId ? "Güncelle" : "Kaydet"}</button>
-                      <button onClick={() => (editingPrecedentId ? cancelPrecedentEdit() : setShowPrecedentForm(false))} style={{ flex: 1, padding: "11px 0", borderRadius: 5, border: `1px solid ${COLORS.line}`, background: "transparent", color: COLORS.charcoal, fontSize: 13.5 }}>{editingPrecedentId ? "İptal" : "Kapat"}</button>
+                      <button onClick={() => (editingPrecedentId ? cancelPrecedentEdit() : setShowPrecedentForm(false))} style={{ flex: 1, padding: "11px 0", borderRadius: 5, border: `1px solid ${COLORS.line}`, background: "transparent", color: COLORS.charcoal, fontSize: 13.5 }}>İptal</button>
                     </div>
                   </div>
                 )}
@@ -1929,12 +1555,11 @@
             </div>
           )}
 
-          {/* ---- TOPICS TAB (Detaylı Haftalık Program) ---- */}
+          {/* ---- TOPICS (PROGRAM) TAB ---- */}
           {tab === "topics" && (
             <div style={{ padding: "18px 20px" }}>
-              <div style={{ fontFamily: "'Fraunces', serif", fontSize: 18, color: COLORS.heading, marginBottom: 14 }}>Konularım</div>
+              <div style={{ fontFamily: "'Fraunces', serif", fontSize: 18, color: COLORS.heading, marginBottom: 14 }}>Program & İstatistikler</div>
 
-              {/* Çalışma Serisi */}
               <div style={{ background: COLORS.surface, border: `1px solid ${COLORS.line}`, borderRadius: 6, padding: "14px 16px", marginBottom: 16 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
                   <div style={{ fontSize: 26 }}>🔥</div>
@@ -1946,18 +1571,13 @@
                 <div style={{ display: "flex", gap: 5, alignItems: "flex-end", height: 44 }}>
                   {last7Days.map((d, i) => (
                     <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 3 }}>
-                      <div style={{
-                        width: "100%", borderRadius: 3,
-                        height: Math.max(4, Math.min(30, d.count * 4)),
-                        background: d.count > 0 ? (d.isToday ? COLORS.bordo : COLORS.gold) : COLORS.line,
-                      }} />
+                      <div style={{ width: "100%", borderRadius: 3, height: Math.max(4, Math.min(30, d.count * 4)), background: d.count > 0 ? (d.isToday ? COLORS.bordo : COLORS.gold) : COLORS.line }} />
                       <div style={{ fontSize: 9, color: d.isToday ? COLORS.bordo : COLORS.charcoal, opacity: d.isToday ? 1 : 0.55, fontWeight: d.isToday ? 700 : 500 }}>{d.label}</div>
                     </div>
                   ))}
                 </div>
               </div>
 
-              {/* Gelişmiş Haftalık Program */}
               <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.6, color: COLORS.bordo, marginBottom: 8 }}>🗓️ HAFTALIK PROGRAM & AMFİ TAKİBİ</div>
               <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 22 }}>
                 {WEEKDAY_ORDER.map((day) => {
@@ -1971,9 +1591,7 @@
                           <span style={{ fontSize: 12.5, fontWeight: 600, color: isToday ? COLORS.bordo : COLORS.heading }}>{day}</span>
                           {isToday && <span style={{ fontSize: 8.5, fontWeight: 700, color: "#fff", background: COLORS.bordo, borderRadius: 999, padding: "2px 6px" }}>BUGÜN</span>}
                         </div>
-                        <span style={{ fontSize: 10.5, color: COLORS.bordo, maxWidth: 160, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                          {assigned.length > 0 ? `${assigned.length} Ders` : "boş"}
-                        </span>
+                        <span style={{ fontSize: 10.5, color: COLORS.bordo }}>{assigned.length > 0 ? `${assigned.length} Ders` : "boş"}</span>
                       </button>
                       
                       {open && (
@@ -1990,10 +1608,7 @@
                               <input type="text" placeholder="Derslik (Örn: Hukuk Fakültesi Amfi 1)" value={item.location} onChange={(e) => updateScheduleItem(day, item.id, 'location', e.target.value)} style={{ width: "100%", padding: "6px 8px", borderRadius: 4, border: `1px solid ${COLORS.line}`, background: COLORS.surface, color: COLORS.heading, fontSize: 12 }} />
                             </div>
                           ))}
-                          
-                          <button onClick={() => addScheduleItem(day)} style={{ width: "100%", padding: "8px 0", borderRadius: 6, border: `1px dashed ${COLORS.bordo}`, background: "transparent", color: COLORS.bordo, fontWeight: 600, fontSize: 12.5 }}>
-                            + Derse Ekle
-                          </button>
+                          <button onClick={() => addScheduleItem(day)} style={{ width: "100%", padding: "8px 0", borderRadius: 6, border: `1px dashed ${COLORS.bordo}`, background: "transparent", color: COLORS.bordo, fontWeight: 600, fontSize: 12.5 }}>+ Derse Ekle</button>
                         </div>
                       )}
                     </div>
@@ -2002,16 +1617,10 @@
               </div>
 
               <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.6, color: COLORS.bordo, marginBottom: 8 }}>📊 SINAV NOTLARIM</div>
-              <div style={{ fontSize: 11, color: COLORS.charcoal, opacity: 0.7, marginBottom: 10, lineHeight: 1.4 }}>
-                Vize %40 + Final %60 ağırlıklı hesaplanır, harf notu üniversitenin aralıklarına göre gösterilir.
-              </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 22 }}>
                 {COURSES.map((course) => {
-                  const g = grades[course] || {};
-                  const vizeNum = parseFloat(g.vize);
-                  const finalNum = parseFloat(g.final);
-                  const hasBoth = !isNaN(vizeNum) && !isNaN(finalNum);
-                  const weighted = hasBoth ? Math.round(vizeNum * 0.4 + finalNum * 0.6) : null;
+                  const g = grades[course] || {}; const vizeNum = parseFloat(g.vize); const finalNum = parseFloat(g.final);
+                  const hasBoth = !isNaN(vizeNum) && !isNaN(finalNum); const weighted = hasBoth ? Math.round(vizeNum * 0.4 + finalNum * 0.6) : null;
                   const letter = weighted !== null ? getLetterGrade(weighted) : null;
                   return (
                     <div key={course} style={{ background: COLORS.surface, border: `1px solid ${COLORS.line}`, borderRadius: 6, padding: "11px 13px" }}>
@@ -2020,101 +1629,33 @@
                         {weighted !== null && (
                           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                             <span style={{ fontSize: 11.5, color: COLORS.charcoal, opacity: 0.7 }}>{weighted}</span>
-                            <span style={{
-                              fontSize: 11.5, fontWeight: 700, padding: "2px 8px", borderRadius: 999,
-                              color: "#fff", background: letter === "FF" ? COLORS.rust : letter === "FD" || letter === "DD" || letter === "DC" ? COLORS.gold : COLORS.green,
-                            }}>{letter}</span>
+                            <span style={{ fontSize: 11.5, fontWeight: 700, padding: "2px 8px", borderRadius: 999, color: "#fff", background: letter === "FF" ? COLORS.rust : letter === "FD" || letter === "DD" || letter === "DC" ? COLORS.gold : COLORS.green }}>{letter}</span>
                           </div>
                         )}
                       </div>
                       <div style={{ display: "flex", gap: 8 }}>
-                        <input type="number" min="0" max="100" placeholder="Vize" value={g.vize || ""} onChange={(e) => updateGrade(course, "vize", e.target.value)}
-                          style={{ flex: 1, padding: "8px 10px", borderRadius: 5, border: `1px solid ${COLORS.line}`, fontSize: 12.5, background: COLORS.parchment, color: COLORS.body }} />
-                        <input type="number" min="0" max="100" placeholder="Final" value={g.final || ""} onChange={(e) => updateGrade(course, "final", e.target.value)}
-                          style={{ flex: 1, padding: "8px 10px", borderRadius: 5, border: `1px solid ${COLORS.line}`, fontSize: 12.5, background: COLORS.parchment, color: COLORS.body }} />
+                        <input type="number" min="0" max="100" placeholder="Vize" value={g.vize || ""} onChange={(e) => updateGrade(course, "vize", e.target.value)} style={{ flex: 1, padding: "8px 10px", borderRadius: 5, border: `1px solid ${COLORS.line}`, fontSize: 12.5, background: COLORS.parchment, color: COLORS.body }} />
+                        <input type="number" min="0" max="100" placeholder="Final" value={g.final || ""} onChange={(e) => updateGrade(course, "final", e.target.value)} style={{ flex: 1, padding: "8px 10px", borderRadius: 5, border: `1px solid ${COLORS.line}`, fontSize: 12.5, background: COLORS.parchment, color: COLORS.body }} />
                       </div>
                     </div>
                   );
                 })}
               </div>
-
-              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.6, color: COLORS.bordo, marginBottom: 8 }}>DERS HAKİMİYETİ</div>
-              {topicStats.length === 0 && <div style={{ fontSize: 13, color: COLORS.bordo, opacity: 0.7, marginBottom: 20 }}>Henüz konu yok. Aşağıdan ilk fişini ekleyebilirsin.</div>}
-              <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 22 }}>
-                {topicStats.map((t) => (
-                  <div key={t.topic} style={{ background: COLORS.surface, border: `1px solid ${COLORS.line}`, borderRadius: 6, padding: "14px 16px" }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 8 }}>
-                      <div style={{ fontWeight: 600, fontSize: 14, color: COLORS.heading }}>{t.topic}</div>
-                      <div style={{ fontSize: 12, color: COLORS.bordo }}>{t.count} fiş</div>
-                    </div>
-                    <div style={{ height: 6, background: COLORS.track, borderRadius: 999, overflow: "hidden" }}>
-                      <div style={{ height: "100%", width: `${t.mastery}%`, background: t.mastery > 66 ? COLORS.green : t.mastery > 33 ? COLORS.gold : COLORS.rust, borderRadius: 999 }} />
-                    </div>
-                    <div style={{ fontSize: 11, color: COLORS.charcoal, opacity: 0.6, marginTop: 6 }}>
-                      Hakimiyet %{t.mastery}
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {!showAddForm && !showBulkForm ? (
-                <div style={{ display: "flex", gap: 8 }}>
-                  <button onClick={() => setShowAddForm(true)} style={{ flex: 1, padding: "13px 0", borderRadius: 6, border: `1px dashed ${COLORS.bordo}`, background: "transparent", color: COLORS.bordo, fontWeight: 600, fontSize: 13 }}>
-                    + Yeni fiş ekle
-                  </button>
-                  <button onClick={() => setShowBulkForm(true)} style={{ flex: 1, padding: "13px 0", borderRadius: 6, border: `1px dashed ${COLORS.gold}`, background: "transparent", color: COLORS.ink, fontWeight: 600, fontSize: 13 }}>
-                    + Toplu ekle
-                  </button>
-                </div>
-              ) : showBulkForm ? (
-                <div style={{ background: COLORS.surface, border: `1px solid ${COLORS.line}`, borderRadius: 6, padding: 16 }}>
-                  <div style={{ fontWeight: 600, fontSize: 13.5, color: COLORS.heading, marginBottom: 4 }}>Toplu Fiş Ekle</div>
-                  <div style={{ fontSize: 11, color: COLORS.charcoal, opacity: 0.7, marginBottom: 10, lineHeight: 1.4 }}>
-                    Her satıra bir fiş: <strong>Soru | Cevap</strong> formatında yapıştır. Boş satırlar ve "|" içermeyenler atlanır.
-                  </div>
-                  <input list="course-suggestions" placeholder="Konu / Ders (örn. Eşya Hukuku)" value={bulkForm.topic} onChange={(e) => setBulkForm({ ...bulkForm, topic: e.target.value })} style={{ width: "100%", padding: "10px 12px", borderRadius: 5, border: `1px solid ${COLORS.line}`, marginBottom: 8, fontSize: 13.5 }} />
-                  <textarea placeholder={"Zilyetlik nedir? | Bir şey üzerindeki fiili hakimiyettir.\nMülkiyet hakkı kaç türlü yetki sağlar? | Kullanma, yararlanma, tasarruf."} value={bulkForm.text} onChange={(e) => setBulkForm({ ...bulkForm, text: e.target.value })} style={{ width: "100%", padding: "10px 12px", borderRadius: 5, border: `1px solid ${COLORS.line}`, marginBottom: 12, fontSize: 12.5, minHeight: 140, resize: "vertical", fontFamily: "monospace" }} />
-                  <div style={{ display: "flex", gap: 8 }}>
-                    <button onClick={addBulkCards} style={{ flex: 1, padding: "11px 0", borderRadius: 5, border: "none", background: COLORS.ink, color: "#fff", fontWeight: 600, fontSize: 13.5 }}>İçe Aktar</button>
-                    <button onClick={() => { setShowBulkForm(false); setBulkForm({ topic: "", text: "" }); }} style={{ flex: 1, padding: "11px 0", borderRadius: 5, border: `1px solid ${COLORS.line}`, background: "transparent", color: COLORS.charcoal, fontSize: 13.5 }}>Kapat</button>
-                  </div>
-                </div>
-              ) : (
-                <div style={{ background: COLORS.surface, border: `1px solid ${COLORS.line}`, borderRadius: 6, padding: 16 }}>
-                  <div style={{ fontWeight: 600, fontSize: 13.5, color: COLORS.heading, marginBottom: 10 }}>{editingCardId ? "Fişi Düzenle" : "Yeni Fiş"}</div>
-                  <input list="course-suggestions" placeholder="Konu / Ders (örn. Eşya Hukuku)" value={form.topic} onChange={(e) => setForm({ ...form, topic: e.target.value })} style={{ width: "100%", padding: "10px 12px", borderRadius: 5, border: `1px solid ${COLORS.line}`, marginBottom: 8, fontSize: 13.5 }} />
-                  <datalist id="course-suggestions">
-                    {COURSES.map((c) => <option key={c} value={c} />)}
-                  </datalist>
-                  <textarea placeholder="Ön yüz — Soru veya terim" value={form.front} onChange={(e) => setForm({ ...form, front: e.target.value })} style={{ width: "100%", padding: "10px 12px", borderRadius: 5, border: `1px solid ${COLORS.line}`, marginBottom: 8, fontSize: 13.5, minHeight: 60, resize: "vertical" }} />
-                  <textarea placeholder="Arka yüz — Yanıt veya açıklama" value={form.back} onChange={(e) => setForm({ ...form, back: e.target.value })} style={{ width: "100%", padding: "10px 12px", borderRadius: 5, border: `1px solid ${COLORS.line}`, marginBottom: 8, fontSize: 13.5, minHeight: 70, resize: "vertical" }} />
-                  <input placeholder="İlgili madde (örn. TMK 683) — haritaya bağlanır" value={form.statute} onChange={(e) => setForm({ ...form, statute: e.target.value })} style={{ width: "100%", padding: "10px 12px", borderRadius: 5, border: `1px solid ${COLORS.line}`, marginBottom: 12, fontSize: 13.5 }} />
-                  <div style={{ display: "flex", gap: 8 }}>
-                    <button onClick={addCard} style={{ flex: 1, padding: "11px 0", borderRadius: 5, border: "none", background: COLORS.ink, color: "#fff", fontWeight: 600, fontSize: 13.5 }}>{editingCardId ? "Güncelle" : "Kaydet"}</button>
-                    <button onClick={() => (editingCardId ? cancelCardEdit() : setShowAddForm(false))} style={{ flex: 1, padding: "11px 0", borderRadius: 5, border: `1px solid ${COLORS.line}`, background: "transparent", color: COLORS.charcoal, fontSize: 13.5 }}>{editingCardId ? "İptal" : "Kapat"}</button>
-                  </div>
-                </div>
-              )}
             </div>
           )}
 
           {/* Bottom Navigation */}
-          <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, background: COLORS.surface, borderTop: `1px solid ${COLORS.line}`, display: "flex", padding: "10px 0 calc(10px + env(safe-area-inset-bottom))", zIndex: 100 }}>
+          <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, background: COLORS.surface, borderTop: `1px solid ${COLORS.line}`, display: "flex", padding: "10px 0 calc(10px + env(safe-area-inset-bottom))", zIndex: 100, overflowX: "auto", whiteSpace: "nowrap" }}>
             {[
-              ["dersler", "Dersler"],
-              ["kanunlar", "Kanunlar"],
-              ["cards", "Kartlar"],
-              ["pratik", "Pratik"],
-              ["sozluk", "Sözlük"],
-              ["topics", "Program"],
+              ["dersler", "Dersler"], ["kanunlar", "Kanunlar"], ["cards", "Kartlar"],
+              ["pratik", "Pratik"], ["sozluk", "Sözlük"], ["pomodoro", "Odak"], ["topics", "Program"],
             ].map(([key, label]) => (
-              <button key={key} onClick={() => { setTab(key); if (key !== "dersler") { setSelectedCourse(null); } if (key !== "cards") { setQuizMode(false); setQuiz(null); } }} style={{ flex: 1, background: "none", border: "none", fontSize: 10.5, fontWeight: 600, color: tab === key ? COLORS.bordo : "#9A9382", padding: "4px 0" }}>
+              <button key={key} onClick={() => { setTab(key); if (key !== "dersler") setSelectedCourse(null); if (key !== "cards") { setQuizMode(false); setQuiz(null); } }} style={{ flexShrink: 0, minWidth: "14%", flex: 1, background: "none", border: "none", fontSize: 10.5, fontWeight: 600, color: tab === key ? COLORS.bordo : "#9A9382", padding: "4px 2px" }}>
                 {label}
               </button>
             ))}
           </div>
 
-          {/* ---- PAYLAŞ MENÜSÜNDEN GELEN BAĞLANTI ---- */}
           {shareIntake && (
             <div style={{ position: "fixed", inset: 0, background: "rgba(28,43,74,0.55)", zIndex: 260, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }} onClick={() => setShareIntake(null)}>
               <div onClick={(e) => e.stopPropagation()} style={{ background: COLORS.parchment, borderRadius: 12, padding: 20, width: "100%", maxWidth: 340 }}>
@@ -2123,13 +1664,7 @@
                 <div style={{ fontSize: 11, fontWeight: 700, color: COLORS.bordo, marginBottom: 8 }}>Hangi derse eklensin?</div>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 14 }}>
                   {COURSES.map((c) => (
-                    <button key={c} onClick={() => {
-                      setSelectedCourse(c);
-                      setResourceForm({ title: shareIntake.title || "Paylaşılan bağlantı", url: shareIntake.url, note: "", category: "Genel" });
-                      setShowResourceForm(true);
-                      setTab("dersler");
-                      setShareIntake(null);
-                    }} style={{ padding: "6px 12px", borderRadius: 999, fontSize: 11.5, fontWeight: 600, border: `1px solid ${COLORS.line}`, background: COLORS.surface, color: COLORS.charcoal }}>{c}</button>
+                    <button key={c} onClick={() => { setSelectedCourse(c); setResourceForm({ title: shareIntake.title || "Paylaşılan bağlantı", url: shareIntake.url, note: "", category: "Genel" }); setShowResourceForm(true); setTab("dersler"); setShareIntake(null); }} style={{ padding: "6px 12px", borderRadius: 999, fontSize: 11.5, fontWeight: 600, border: `1px solid ${COLORS.line}`, background: COLORS.surface, color: COLORS.charcoal }}>{c}</button>
                   ))}
                 </div>
                 <button onClick={() => setShareIntake(null)} style={{ width: "100%", padding: "10px 0", borderRadius: 6, border: `1px solid ${COLORS.line}`, background: "transparent", color: COLORS.charcoal, fontSize: 12.5 }}>Vazgeç</button>
@@ -2138,14 +1673,11 @@
           )}
         </div>
 
-        {/* ---- YAZDIRMA SAYFASI (sadece yazdırırken görünür) ---- */}
         <div id="print-sheet">
           {printCourse && (
             <div style={{ padding: "24px 30px", fontFamily: "Georgia, 'Times New Roman', serif", color: "#000" }}>
               <div style={{ fontSize: 22, fontWeight: 700, marginBottom: 2 }}>{printCourse}</div>
-              <div style={{ fontSize: 11, color: "#555", marginBottom: 16 }}>
-                Muzo Hukuk — Fiş Özeti — {new Date().toLocaleDateString("tr-TR")}
-              </div>
+              <div style={{ fontSize: 11, color: "#555", marginBottom: 16 }}>Muzo Hukuk — Fiş Özeti — {new Date().toLocaleDateString("tr-TR")}</div>
               <hr style={{ border: "none", borderTop: "1px solid #999", marginBottom: 16 }} />
               {cards.filter((c) => c.topic === printCourse).map((c, i) => (
                 <div key={c.id} style={{ marginBottom: 16, breakInside: "avoid" }}>
@@ -2154,9 +1686,6 @@
                   {c.statute && <div style={{ fontSize: 11, marginTop: 2, marginLeft: 18, color: "#555" }}>({c.statute})</div>}
                 </div>
               ))}
-              {cards.filter((c) => c.topic === printCourse).length === 0 && (
-                <div style={{ fontSize: 12.5, color: "#555" }}>Bu derse ait fiş bulunmuyor.</div>
-              )}
             </div>
           )}
         </div>
