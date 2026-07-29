@@ -37,7 +37,7 @@
   <div id="root"></div>
 
   <script type="text/babel">
-    const { useState, useEffect, useMemo, useCallback } = React;
+    const { useState, useEffect, useMemo, useCallback, useRef } = React;
 
     const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 
@@ -178,7 +178,6 @@
         .replace(/İ/g, "I").replace(/Ş/g, "S").replace(/Ğ/g, "G")
         .replace(/Ü/g, "U").replace(/Ö/g, "O").replace(/Ç/g, "C");
 
-      // Kanun kısaltmasıyla birlikte geçenler: "TMK m. 683", "TBK 49"
       const withCode = /\b(TMK|TBK|TCK|HMK|IYUK|KMK|TTK|VUK|IIK|MK|BK|CK)\b[\s.]*(?:MADDE|M)?[\s.]*(\d{1,4})/g;
       let m;
       while ((m = withCode.exec(up)) !== null) {
@@ -186,7 +185,6 @@
         found.add(code + " " + m[2]);
       }
 
-      // Kısaltma olmadan "m. 683" / "madde 683" — bulunduğu kanuna ait sayılır
       if (defaultCode) {
         const noCode = /(?:^|[^A-Z0-9])(?:MADDE|M)[\s.]+(\d{1,4})/g;
         while ((m = noCode.exec(up)) !== null) {
@@ -210,7 +208,7 @@
       const [cases, setCases] = useState([]);
       const [lawNotes, setLawNotes] = useState({});
       const [precedents, setPrecedents] = useState([]);
-      const [dictionary, setDictionary] = useState([]); // Sözlük State
+      const [dictionary, setDictionary] = useState([]); 
 
       const [tab, setTab] = useState("dersler");
       const [lawSubTab, setLawSubTab] = useState("kanunlar");
@@ -238,6 +236,7 @@
       const [quizMode, setQuizMode] = useState(false);
       const [quiz, setQuiz] = useState(null);
 
+      // Haftalık program state'i: obj[day] = [{id, course, time, location}]
       const [weeklyPlan, setWeeklyPlan] = useState({});
       const [expandedDay, setExpandedDay] = useState(null);
 
@@ -270,13 +269,19 @@
       const [precedentSearch, setPrecedentSearch] = useState("");
       const [toast, setToast] = useState(null);
 
-      // Sözlük Form State
       const [showDictForm, setShowDictForm] = useState(false);
       const [dictForm, setDictForm] = useState({ term: "", definition: "" });
       const [editingDictId, setEditingDictId] = useState(null);
       const [dictSearch, setDictSearch] = useState("");
 
-      // Sınav Tarihleri Hesaplaması — kullanıcı Ayarlar'dan değiştirmediyse varsayılan tarihler kullanılır
+      // Pomodoro States
+      const [showPomodoro, setShowPomodoro] = useState(false);
+      const [pomoMinutes, setPomoMinutes] = useState(25);
+      const [pomoSeconds, setPomoSeconds] = useState(0);
+      const [pomoIsRunning, setPomoIsRunning] = useState(false);
+      const [pomoMode, setPomoMode] = useState("work"); // work | break
+
+      // Sınav Tarihleri Hesaplaması
       const currentYear = new Date().getFullYear();
       const defaultVizeDateStr = `${currentYear}-12-28`;
       const finalYear = new Date().getMonth() >= 6 ? currentYear + 1 : currentYear;
@@ -295,14 +300,12 @@
         } catch (e) { return dateStr; }
       };
 
-      // Bugün Gözden Geçirilen Fiş Sayısı (Günlük Hedef: 10 Fiş)
       const dailyTarget = 10;
       const todayReviewedCount = useMemo(() => {
         const todayStr = new Date().toISOString().split("T")[0];
         return cards.filter(c => c.lastReviewed && c.lastReviewed.startsWith(todayStr)).length;
       }, [cards]);
 
-      // Çalışma Serisi (Streak) — fiş tekrarı yapılan günlerden hesaplanır, ayrı bir kayıt gerekmez
       const studyDaysSet = useMemo(() => {
         const set = new Set();
         cards.forEach((c) => { if (c.lastReviewed) set.add(c.lastReviewed.split("T")[0]); });
@@ -376,9 +379,19 @@
             if (ed && ed.value) loadedExamDates = JSON.parse(ed.value);
           } catch (e) {}
 
+          // Ders programı verisini alırken eski "string dizisi" yapısındaysa yeni formata dönüştür
           try {
             const wp = await storageAdapter.get("weekly-plan");
-            if (wp && wp.value) loadedWeeklyPlan = JSON.parse(wp.value);
+            if (wp && wp.value) {
+              const parsed = JSON.parse(wp.value);
+              const migrated = {};
+              for (let day of Object.keys(parsed)) {
+                migrated[day] = parsed[day].map(c => 
+                  typeof c === 'string' ? { id: uid(), course: c, time: "09:00", location: "Amfi 1" } : c
+                );
+              }
+              loadedWeeklyPlan = migrated;
+            }
           } catch (e) {}
 
           try {
@@ -424,7 +437,43 @@
         })();
       }, []);
 
-      // Paylaş menüsünden bağlantı geldiyse (Android Share Target) yakala
+      // Pomodoro Effect
+      useEffect(() => {
+        let interval = null;
+        if (pomoIsRunning) {
+          interval = setInterval(() => {
+            if (pomoSeconds > 0) {
+              setPomoSeconds(s => s - 1);
+            } else {
+              if (pomoMinutes > 0) {
+                setPomoMinutes(m => m - 1);
+                setPomoSeconds(59);
+              } else {
+                setPomoIsRunning(false);
+                const nextMode = pomoMode === "work" ? "break" : "work";
+                setPomoMode(nextMode);
+                setPomoMinutes(nextMode === "work" ? 25 : 5);
+                showToast(pomoMode === "work" ? "Süre doldu, şimdi dinlenme vakti!" : "Mola bitti, çalışmaya dönelim!");
+                if (audioMode || "speechSynthesis" in window) {
+                   const utter = new SpeechSynthesisUtterance(pomoMode === "work" ? "Süre doldu, mola vakti!" : "Mola bitti, çalışmaya dönelim!");
+                   window.speechSynthesis.speak(utter);
+                }
+              }
+            }
+          }, 1000);
+        }
+        return () => clearInterval(interval);
+      }, [pomoIsRunning, pomoMinutes, pomoSeconds, pomoMode]);
+
+      const formatPomoTime = () => `${String(pomoMinutes).padStart(2, '0')}:${String(pomoSeconds).padStart(2, '0')}`;
+
+      const resetPomodoro = (mode) => {
+        setPomoIsRunning(false);
+        setPomoMode(mode);
+        setPomoMinutes(mode === "work" ? 25 : 5);
+        setPomoSeconds(0);
+      };
+
       useEffect(() => {
         const params = new URLSearchParams(window.location.search);
         const sharedUrl = params.get("url") || params.get("text") || "";
@@ -435,7 +484,6 @@
         }
       }, []);
 
-      // Yazdırma tetiklenince tarayıcı yazdırma diyaloğunu aç, kapanınca sıfırla
       useEffect(() => {
         if (!printCourse) return;
         const t = setTimeout(() => window.print(), 150);
@@ -448,433 +496,176 @@
         return () => window.removeEventListener("afterprint", handleAfterPrint);
       }, []);
 
-      const saveCards = useCallback(async (next) => {
-        setCards(next);
-        await storageAdapter.set("cards", JSON.stringify(next));
-      }, []);
-
-      const saveResources = useCallback(async (next) => {
-        setResources(next);
-        await storageAdapter.set("resources", JSON.stringify(next));
-      }, []);
-
-      const saveCases = useCallback(async (next) => {
-        setCases(next);
-        await storageAdapter.set("cases", JSON.stringify(next));
-      }, []);
-
-      const savePrecedents = useCallback(async (next) => {
-        setPrecedents(next);
-        await storageAdapter.set("precedents", JSON.stringify(next));
-      }, []);
+      const saveCards = useCallback(async (next) => { setCards(next); await storageAdapter.set("cards", JSON.stringify(next)); }, []);
+      const saveResources = useCallback(async (next) => { setResources(next); await storageAdapter.set("resources", JSON.stringify(next)); }, []);
+      const saveCases = useCallback(async (next) => { setCases(next); await storageAdapter.set("cases", JSON.stringify(next)); }, []);
+      const savePrecedents = useCallback(async (next) => { setPrecedents(next); await storageAdapter.set("precedents", JSON.stringify(next)); }, []);
+      const saveDictionary = useCallback(async (next) => { setDictionary(next); await storageAdapter.set("dictionary", JSON.stringify(next)); }, []);
       
-      const saveDictionary = useCallback(async (next) => {
-        setDictionary(next);
-        await storageAdapter.set("dictionary", JSON.stringify(next));
-      }, []);
-
-      // ---- Sözlük CRUD ----
-      const addDictTerm = () => {
-        if (!dictForm.term.trim() || !dictForm.definition.trim()) {
-          showToast("Terim ve açıklama gerekli."); return;
-        }
-        if (editingDictId) {
-          saveDictionary(dictionary.map(d => d.id === editingDictId ? { ...d, term: dictForm.term.trim(), definition: dictForm.definition.trim() } : d));
-          setEditingDictId(null);
-          setDictForm({ term: "", definition: "" });
-          setShowDictForm(false);
-          showToast("Terim güncellendi.");
-          return;
-        }
-        const newTerm = { id: uid(), term: dictForm.term.trim(), definition: dictForm.definition.trim() };
-        saveDictionary([...dictionary, newTerm].sort((a,b) => a.term.localeCompare(b.term, "tr")));
-        setDictForm({ term: "", definition: "" });
-        setShowDictForm(false);
-        showToast("Terim eklendi.");
-      };
-
-      const startEditDict = (d) => {
-        setEditingDictId(d.id);
-        setDictForm({ term: d.term, definition: d.definition });
-        setShowDictForm(true);
-      };
-
-      const deleteDictTerm = (id) => {
-        if (!confirm("Bu terimi silmek istediğine emin misin?")) return;
-        saveDictionary(dictionary.filter(d => d.id !== id));
-        showToast("Terim silindi.");
-      };
-
-      const addPrecedent = () => {
-        if (!precedentForm.summary.trim()) {
-          showToast("Karar özeti gerekli.");
-          return;
-        }
-        if (editingPrecedentId) {
-          savePrecedents(precedents.map((p) => (p.id === editingPrecedentId
-            ? { ...p, court: precedentForm.court || "Diğer", caseNo: precedentForm.caseNo.trim(), date: precedentForm.date.trim(), topic: precedentForm.topic.trim(), statute: precedentForm.statute.trim(), summary: precedentForm.summary.trim() }
-            : p)));
-          setEditingPrecedentId(null);
-          setPrecedentForm({ court: COURTS[0], caseNo: "", date: "", topic: "", statute: "", summary: "" });
-          setShowPrecedentForm(false);
-          showToast("Karar güncellendi.");
-          return;
-        }
-        const newP = {
-          id: uid(),
-          court: precedentForm.court || "Diğer",
-          caseNo: precedentForm.caseNo.trim(),
-          date: precedentForm.date.trim(),
-          topic: precedentForm.topic.trim(),
-          statute: precedentForm.statute.trim(),
-          summary: precedentForm.summary.trim(),
-        };
-        savePrecedents([...precedents, newP]);
-        setPrecedentForm({ court: precedentForm.court, caseNo: "", date: "", topic: "", statute: "", summary: "" });
-        setShowPrecedentForm(false);
-        showToast("Karar eklendi.");
-      };
-
-      const startEditPrecedent = (p) => {
-        setEditingPrecedentId(p.id);
-        setPrecedentForm({ court: p.court, caseNo: p.caseNo || "", date: p.date || "", topic: p.topic || "", statute: p.statute || "", summary: p.summary || "" });
-        setShowPrecedentForm(true);
-      };
-
-      const cancelPrecedentEdit = () => {
-        setEditingPrecedentId(null);
-        setPrecedentForm({ court: COURTS[0], caseNo: "", date: "", topic: "", statute: "", summary: "" });
-        setShowPrecedentForm(false);
-      };
-
-      const deletePrecedent = (id) => {
-        if (!confirm("Bu kararı silmek istediğine emin misin?")) return;
-        savePrecedents(precedents.filter((p) => p.id !== id));
-        showToast("Karar silindi.");
-      };
-
-      const saveAudioMode = useCallback(async (next) => {
-        setAudioMode(next);
-        await storageAdapter.set("audio-mode", JSON.stringify(next));
-      }, []);
-
-      const setDarkMode = useCallback(async (next) => {
-        setDarkModeState(next);
-        await storageAdapter.set("dark-mode", JSON.stringify(next));
-      }, []);
-
-      const saveGrades = useCallback(async (next) => {
-        setGrades(next);
-        await storageAdapter.set("grades", JSON.stringify(next));
-      }, []);
-
-      const updateGrade = (course, field, value) => {
-        const current = grades[course] || {};
-        saveGrades({ ...grades, [course]: { ...current, [field]: value } });
-      };
-
-      // Vize %40 + Final %60 ağırlıklı sistem, üniversitenin harf notu aralıklarına göre
-      const getLetterGrade = (score) => {
-        if (score >= 88) return "AA";
-        if (score >= 81) return "BA";
-        if (score >= 74) return "BB";
-        if (score >= 67) return "CB";
-        if (score >= 60) return "CC";
-        if (score >= 53) return "DC";
-        if (score >= 46) return "DD";
-        if (score >= 39) return "FD";
-        return "FF";
-      };
-
-      const speak = (text) => {
-        if (!text) return;
-        if (!("speechSynthesis" in window)) {
-          showToast("Bu tarayıcı sesli okumayı desteklemiyor.");
-          return;
-        }
-        window.speechSynthesis.cancel();
-        const utter = new SpeechSynthesisUtterance(text);
-        utter.lang = "tr-TR";
-        utter.rate = 0.95;
-        window.speechSynthesis.speak(utter);
-      };
-
       const saveWeeklyPlan = useCallback(async (next) => {
         setWeeklyPlan(next);
         await storageAdapter.set("weekly-plan", JSON.stringify(next));
       }, []);
 
-      const toggleDayCourse = (day, course) => {
+      const addScheduleItem = (day) => {
         const current = weeklyPlan[day] || [];
-        const next = current.includes(course) ? current.filter((c) => c !== course) : [...current, course];
-        saveWeeklyPlan({ ...weeklyPlan, [day]: next });
+        saveWeeklyPlan({...weeklyPlan, [day]: [...current, { id: uid(), course: COURSES[0], time: "09:00", location: "" }]});
+      };
+      
+      const updateScheduleItem = (day, id, field, value) => {
+        const current = weeklyPlan[day] || [];
+        saveWeeklyPlan({...weeklyPlan, [day]: current.map(item => item.id === id ? {...item, [field]: value} : item)});
+      };
+      
+      const removeScheduleItem = (day, id) => {
+        const current = weeklyPlan[day] || [];
+        saveWeeklyPlan({...weeklyPlan, [day]: current.filter(item => item.id !== id)});
       };
 
-      const saveLawNotes = useCallback(async (next) => {
-        setLawNotes(next);
-        await storageAdapter.set("law-notes", JSON.stringify(next));
-      }, []);
+      const addDictTerm = () => {
+        if (!dictForm.term.trim() || !dictForm.definition.trim()) { showToast("Terim ve açıklama gerekli."); return; }
+        if (editingDictId) {
+          saveDictionary(dictionary.map(d => d.id === editingDictId ? { ...d, term: dictForm.term.trim(), definition: dictForm.definition.trim() } : d));
+          setEditingDictId(null); setDictForm({ term: "", definition: "" }); setShowDictForm(false); showToast("Terim güncellendi.");
+          return;
+        }
+        const newTerm = { id: uid(), term: dictForm.term.trim(), definition: dictForm.definition.trim() };
+        saveDictionary([...dictionary, newTerm].sort((a,b) => a.term.localeCompare(b.term, "tr")));
+        setDictForm({ term: "", definition: "" }); setShowDictForm(false); showToast("Terim eklendi.");
+      };
 
-      const saveExamDates = useCallback(async (next) => {
-        setExamDates(next);
-        await storageAdapter.set("exam-dates", JSON.stringify(next));
-      }, []);
+      const startEditDict = (d) => { setEditingDictId(d.id); setDictForm({ term: d.term, definition: d.definition }); setShowDictForm(true); };
+      const deleteDictTerm = (id) => { if (!confirm("Bu terimi silmek istediğine emin misin?")) return; saveDictionary(dictionary.filter(d => d.id !== id)); showToast("Terim silindi."); };
 
-      // ---- Yedekle / Geri Yükle ----
+      const addPrecedent = () => {
+        if (!precedentForm.summary.trim()) { showToast("Karar özeti gerekli."); return; }
+        if (editingPrecedentId) {
+          savePrecedents(precedents.map((p) => (p.id === editingPrecedentId ? { ...p, court: precedentForm.court || "Diğer", caseNo: precedentForm.caseNo.trim(), date: precedentForm.date.trim(), topic: precedentForm.topic.trim(), statute: precedentForm.statute.trim(), summary: precedentForm.summary.trim() } : p)));
+          setEditingPrecedentId(null); setPrecedentForm({ court: COURTS[0], caseNo: "", date: "", topic: "", statute: "", summary: "" }); setShowPrecedentForm(false); showToast("Karar güncellendi."); return;
+        }
+        const newP = { id: uid(), court: precedentForm.court || "Diğer", caseNo: precedentForm.caseNo.trim(), date: precedentForm.date.trim(), topic: precedentForm.topic.trim(), statute: precedentForm.statute.trim(), summary: precedentForm.summary.trim() };
+        savePrecedents([...precedents, newP]); setPrecedentForm({ court: precedentForm.court, caseNo: "", date: "", topic: "", statute: "", summary: "" }); setShowPrecedentForm(false); showToast("Karar eklendi.");
+      };
+
+      const startEditPrecedent = (p) => { setEditingPrecedentId(p.id); setPrecedentForm({ court: p.court, caseNo: p.caseNo || "", date: p.date || "", topic: p.topic || "", statute: p.statute || "", summary: p.summary || "" }); setShowPrecedentForm(true); };
+      const cancelPrecedentEdit = () => { setEditingPrecedentId(null); setPrecedentForm({ court: COURTS[0], caseNo: "", date: "", topic: "", statute: "", summary: "" }); setShowPrecedentForm(false); };
+      const deletePrecedent = (id) => { if (!confirm("Bu kararı silmek istediğine emin misin?")) return; savePrecedents(precedents.filter((p) => p.id !== id)); showToast("Karar silindi."); };
+
+      const saveAudioMode = useCallback(async (next) => { setAudioMode(next); await storageAdapter.set("audio-mode", JSON.stringify(next)); }, []);
+      const setDarkMode = useCallback(async (next) => { setDarkModeState(next); await storageAdapter.set("dark-mode", JSON.stringify(next)); }, []);
+      const saveGrades = useCallback(async (next) => { setGrades(next); await storageAdapter.set("grades", JSON.stringify(next)); }, []);
+
+      const updateGrade = (course, field, value) => { const current = grades[course] || {}; saveGrades({ ...grades, [course]: { ...current, [field]: value } }); };
+
+      const getLetterGrade = (score) => {
+        if (score >= 88) return "AA"; if (score >= 81) return "BA"; if (score >= 74) return "BB"; if (score >= 67) return "CB";
+        if (score >= 60) return "CC"; if (score >= 53) return "DC"; if (score >= 46) return "DD"; if (score >= 39) return "FD"; return "FF";
+      };
+
+      const speak = (text) => {
+        if (!text) return;
+        if (!("speechSynthesis" in window)) { showToast("Bu tarayıcı sesli okumayı desteklemiyor."); return; }
+        window.speechSynthesis.cancel();
+        const utter = new SpeechSynthesisUtterance(text);
+        utter.lang = "tr-TR"; utter.rate = 0.95;
+        window.speechSynthesis.speak(utter);
+      };
+
+      const saveLawNotes = useCallback(async (next) => { setLawNotes(next); await storageAdapter.set("law-notes", JSON.stringify(next)); }, []);
+      const saveExamDates = useCallback(async (next) => { setExamDates(next); await storageAdapter.set("exam-dates", JSON.stringify(next)); }, []);
+
       const exportBackup = () => {
-        const payload = {
-          app: "muzo-hukuk",
-          version: 1,
-          exportedAt: new Date().toISOString(),
-          cards, resources, cases, lawNotes, examDates, weeklyPlan, precedents, grades, dictionary,
-        };
+        const payload = { app: "muzo-hukuk", version: 1, exportedAt: new Date().toISOString(), cards, resources, cases, lawNotes, examDates, weeklyPlan, precedents, grades, dictionary };
         const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
         const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `muzo-hukuk-yedek-${new Date().toISOString().split("T")[0]}.json`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-        showToast("Yedek indirildi.");
+        const a = document.createElement("a"); a.href = url; a.download = `muzo-hukuk-yedek-${new Date().toISOString().split("T")[0]}.json`;
+        document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url); showToast("Yedek indirildi.");
       };
 
       const handleImportFile = (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
+        const file = e.target.files[0]; if (!file) return; const reader = new FileReader();
         reader.onload = async (ev) => {
           try {
             const data = JSON.parse(ev.target.result);
-            if (!data || data.app !== "muzo-hukuk") {
-              showToast("Bu bir Muzo Hukuk yedek dosyası değil.");
-              return;
-            }
-            if (data.cards) await saveCards(data.cards);
-            if (data.resources) await saveResources(data.resources);
-            if (data.cases) await saveCases(data.cases);
-            if (data.lawNotes) await saveLawNotes(data.lawNotes);
-            if (data.examDates) await saveExamDates(data.examDates);
-            if (data.weeklyPlan) await saveWeeklyPlan(data.weeklyPlan);
-            if (data.precedents) await savePrecedents(data.precedents);
-            if (data.grades) await saveGrades(data.grades);
-            if (data.dictionary) await saveDictionary(data.dictionary);
-            showToast("Yedek geri yüklendi!");
-            setShowSettings(false);
-          } catch (err) {
-            showToast("Dosya okunamadı, geçerli bir JSON yedeği olmalı.");
-          }
+            if (!data || data.app !== "muzo-hukuk") { showToast("Bu bir Muzo Hukuk yedek dosyası değil."); return; }
+            if (data.cards) await saveCards(data.cards); if (data.resources) await saveResources(data.resources); if (data.cases) await saveCases(data.cases);
+            if (data.lawNotes) await saveLawNotes(data.lawNotes); if (data.examDates) await saveExamDates(data.examDates); if (data.weeklyPlan) await saveWeeklyPlan(data.weeklyPlan);
+            if (data.precedents) await savePrecedents(data.precedents); if (data.grades) await saveGrades(data.grades); if (data.dictionary) await saveDictionary(data.dictionary);
+            showToast("Yedek geri yüklendi!"); setShowSettings(false);
+          } catch (err) { showToast("Dosya okunamadı, geçerli bir JSON yedeği olmalı."); }
         };
-        reader.readAsText(file);
-        e.target.value = "";
+        reader.readAsText(file); e.target.value = "";
       };
 
       const addResource = () => {
-        if (!resourceForm.title.trim()) {
-          showToast("Kaynak adı gerekli.");
-          return;
-        }
+        if (!resourceForm.title.trim()) { showToast("Kaynak adı gerekli."); return; }
         if (editingResourceId) {
-          saveResources({
-            ...resources,
-            [selectedCourse]: (resources[selectedCourse] || []).map((r) => (r.id === editingResourceId
-              ? { ...r, title: resourceForm.title.trim(), url: resourceForm.url.trim(), note: resourceForm.note.trim(), category: resourceForm.category || "Genel" }
-              : r)),
-          });
-          setEditingResourceId(null);
-          setResourceForm({ title: "", url: "", note: "", category: "Genel" });
-          setShowResourceForm(false);
-          showToast("Kaynak güncellendi.");
-          return;
+          saveResources({ ...resources, [selectedCourse]: (resources[selectedCourse] || []).map((r) => (r.id === editingResourceId ? { ...r, title: resourceForm.title.trim(), url: resourceForm.url.trim(), note: resourceForm.note.trim(), category: resourceForm.category || "Genel" } : r)) });
+          setEditingResourceId(null); setResourceForm({ title: "", url: "", note: "", category: "Genel" }); setShowResourceForm(false); showToast("Kaynak güncellendi."); return;
         }
         const list = resources[selectedCourse] || [];
-        const newRes = {
-          id: uid(),
-          title: resourceForm.title.trim(),
-          url: resourceForm.url.trim(),
-          note: resourceForm.note.trim(),
-          category: resourceForm.category || "Genel",
-        };
-        saveResources({ ...resources, [selectedCourse]: [...list, newRes] });
-        setResourceForm({ title: "", url: "", note: "", category: resourceForm.category });
-        setShowResourceForm(false);
-        showToast("Kaynak eklendi.");
+        const newRes = { id: uid(), title: resourceForm.title.trim(), url: resourceForm.url.trim(), note: resourceForm.note.trim(), category: resourceForm.category || "Genel" };
+        saveResources({ ...resources, [selectedCourse]: [...list, newRes] }); setResourceForm({ title: "", url: "", note: "", category: resourceForm.category }); setShowResourceForm(false); showToast("Kaynak eklendi.");
       };
 
-      const startEditResource = (r) => {
-        setEditingResourceId(r.id);
-        setResourceForm({ title: r.title, url: r.url || "", note: r.note || "", category: r.category || "Genel" });
-        setShowResourceForm(true);
-      };
-
-      const cancelResourceEdit = () => {
-        setEditingResourceId(null);
-        setResourceForm({ title: "", url: "", note: "", category: "Genel" });
-        setShowResourceForm(false);
-      };
-
-      const deleteResource = (course, id) => {
-        if (!confirm("Bu kaynağı silmek istediğine emin misin?")) return;
-        saveResources({ ...resources, [course]: (resources[course] || []).filter((r) => r.id !== id) });
-        showToast("Kaynak silindi.");
-      };
+      const startEditResource = (r) => { setEditingResourceId(r.id); setResourceForm({ title: r.title, url: r.url || "", note: r.note || "", category: r.category || "Genel" }); setShowResourceForm(true); };
+      const cancelResourceEdit = () => { setEditingResourceId(null); setResourceForm({ title: "", url: "", note: "", category: "Genel" }); setShowResourceForm(false); };
+      const deleteResource = (course, id) => { if (!confirm("Bu kaynağı silmek istediğine emin misin?")) return; saveResources({ ...resources, [course]: (resources[course] || []).filter((r) => r.id !== id) }); showToast("Kaynak silindi."); };
 
       const addCase = () => {
-        if (!caseForm.title.trim() || !caseForm.factPattern.trim()) {
-          showToast("Başlık ve olay metni gerekli.");
-          return;
-        }
+        if (!caseForm.title.trim() || !caseForm.factPattern.trim()) { showToast("Başlık ve olay metni gerekli."); return; }
         if (editingCaseId) {
-          saveCases(cases.map((c) => (c.id === editingCaseId
-            ? { ...c, course: caseForm.course || "Genel", title: caseForm.title.trim(), factPattern: caseForm.factPattern.trim(), legalIssue: caseForm.legalIssue.trim(), statute: caseForm.statute.trim(), solution: caseForm.solution.trim() }
-            : c)));
-          setEditingCaseId(null);
-          setCaseForm({ course: COURSES[0], title: "", factPattern: "", legalIssue: "", statute: "", solution: "" });
-          setShowCaseForm(false);
-          showToast("Olay güncellendi.");
-          return;
+          saveCases(cases.map((c) => (c.id === editingCaseId ? { ...c, course: caseForm.course || "Genel", title: caseForm.title.trim(), factPattern: caseForm.factPattern.trim(), legalIssue: caseForm.legalIssue.trim(), statute: caseForm.statute.trim(), solution: caseForm.solution.trim() } : c)));
+          setEditingCaseId(null); setCaseForm({ course: COURSES[0], title: "", factPattern: "", legalIssue: "", statute: "", solution: "" }); setShowCaseForm(false); showToast("Olay güncellendi."); return;
         }
-        const newCase = {
-          id: uid(),
-          course: caseForm.course || "Genel",
-          title: caseForm.title.trim(),
-          factPattern: caseForm.factPattern.trim(),
-          legalIssue: caseForm.legalIssue.trim(),
-          statute: caseForm.statute.trim(),
-          solution: caseForm.solution.trim(),
-        };
-        saveCases([...cases, newCase]);
-        setCaseForm({ course: caseForm.course, title: "", factPattern: "", legalIssue: "", statute: "", solution: "" });
-        setShowCaseForm(false);
-        showToast("Olay eklendi.");
+        const newCase = { id: uid(), course: caseForm.course || "Genel", title: caseForm.title.trim(), factPattern: caseForm.factPattern.trim(), legalIssue: caseForm.legalIssue.trim(), statute: caseForm.statute.trim(), solution: caseForm.solution.trim() };
+        saveCases([...cases, newCase]); setCaseForm({ course: caseForm.course, title: "", factPattern: "", legalIssue: "", statute: "", solution: "" }); setShowCaseForm(false); showToast("Olay eklendi.");
       };
 
-      const deleteCase = (id) => {
-        if (!confirm("Bu olayı silmek istediğine emin misin?")) return;
-        saveCases(cases.filter((c) => c.id !== id));
-        showToast("Olay silindi.");
-      };
-
-      const startEditCase = (c) => {
-        setEditingCaseId(c.id);
-        setCaseForm({ course: c.course, title: c.title, factPattern: c.factPattern, legalIssue: c.legalIssue || "", statute: c.statute || "", solution: c.solution || "" });
-        setShowCaseForm(true);
-      };
-
-      const cancelCaseEdit = () => {
-        setEditingCaseId(null);
-        setCaseForm({ course: COURSES[0], title: "", factPattern: "", legalIssue: "", statute: "", solution: "" });
-        setShowCaseForm(false);
-      };
+      const deleteCase = (id) => { if (!confirm("Bu olayı silmek istediğine emin misin?")) return; saveCases(cases.filter((c) => c.id !== id)); showToast("Olay silindi."); };
+      const startEditCase = (c) => { setEditingCaseId(c.id); setCaseForm({ course: c.course, title: c.title, factPattern: c.factPattern, legalIssue: c.legalIssue || "", statute: c.statute || "", solution: c.solution || "" }); setShowCaseForm(true); };
+      const cancelCaseEdit = () => { setEditingCaseId(null); setCaseForm({ course: COURSES[0], title: "", factPattern: "", legalIssue: "", statute: "", solution: "" }); setShowCaseForm(false); };
 
       const addLawNote = (code) => {
-        if (!noteDraft.text.trim()) {
-          showToast("Not metni boş olamaz.");
-          return;
-        }
+        if (!noteDraft.text.trim()) { showToast("Not metni boş olamaz."); return; }
         if (editingNoteId) {
-          saveLawNotes({
-            ...lawNotes,
-            [code]: (lawNotes[code] || []).map((n) => (n.id === editingNoteId
-              ? { ...n, madde: noteDraft.madde.trim(), text: noteDraft.text.trim(), color: noteDraft.color || "none", review: !!noteDraft.review }
-              : n)),
-          });
-          setEditingNoteId(null);
-          setNoteDraft({ madde: "", text: "", color: "none", review: false });
-          showToast("Not güncellendi.");
-          return;
+          saveLawNotes({ ...lawNotes, [code]: (lawNotes[code] || []).map((n) => (n.id === editingNoteId ? { ...n, madde: noteDraft.madde.trim(), text: noteDraft.text.trim(), color: noteDraft.color || "none", review: !!noteDraft.review } : n)) });
+          setEditingNoteId(null); setNoteDraft({ madde: "", text: "", color: "none", review: false }); showToast("Not güncellendi."); return;
         }
         const list = lawNotes[code] || [];
-        const newNote = {
-          id: uid(),
-          madde: noteDraft.madde.trim(),
-          text: noteDraft.text.trim(),
-          color: noteDraft.color || "none",
-          review: !!noteDraft.review,
-          date: new Date().toISOString(),
-        };
-        saveLawNotes({ ...lawNotes, [code]: [...list, newNote] });
-        setNoteDraft({ madde: "", text: "", color: "none", review: false });
-        showToast("Kanun notu kaydedildi.");
+        const newNote = { id: uid(), madde: noteDraft.madde.trim(), text: noteDraft.text.trim(), color: noteDraft.color || "none", review: !!noteDraft.review, date: new Date().toISOString() };
+        saveLawNotes({ ...lawNotes, [code]: [...list, newNote] }); setNoteDraft({ madde: "", text: "", color: "none", review: false }); showToast("Kanun notu kaydedildi.");
       };
 
-      const startEditNote = (n) => {
-        setEditingNoteId(n.id);
-        setNoteDraft({ madde: n.madde || "", text: n.text || "", color: n.color || "none", review: !!n.review });
-      };
+      const startEditNote = (n) => { setEditingNoteId(n.id); setNoteDraft({ madde: n.madde || "", text: n.text || "", color: n.color || "none", review: !!n.review }); };
+      const cancelNoteEdit = () => { setEditingNoteId(null); setNoteDraft({ madde: "", text: "", color: "none", review: false }); };
+      const deleteLawNote = (code, id) => { if (!confirm("Bu notu silmek istediğine emin misin?")) return; saveLawNotes({ ...lawNotes, [code]: (lawNotes[code] || []).filter((n) => n.id !== id) }); showToast("Not silindi."); };
+      const toggleNoteReview = (code, id) => { saveLawNotes({ ...lawNotes, [code]: (lawNotes[code] || []).map((n) => (n.id === id ? { ...n, review: !n.review } : n)) }); };
+      const cycleNoteColor = (code, id) => { saveLawNotes({ ...lawNotes, [code]: (lawNotes[code] || []).map((n) => { if (n.id !== id) return n; const idx = NOTE_COLORS.findIndex((c) => c.key === (n.color || "none")); const next = NOTE_COLORS[(idx + 1) % NOTE_COLORS.length]; return { ...n, color: next.key }; }) }); };
 
-      const cancelNoteEdit = () => {
-        setEditingNoteId(null);
-        setNoteDraft({ madde: "", text: "", color: "none", review: false });
-      };
-
-      const deleteLawNote = (code, id) => {
-        if (!confirm("Bu notu silmek istediğine emin misin?")) return;
-        saveLawNotes({ ...lawNotes, [code]: (lawNotes[code] || []).filter((n) => n.id !== id) });
-        showToast("Not silindi.");
-      };
-
-      const toggleNoteReview = (code, id) => {
-        saveLawNotes({
-          ...lawNotes,
-          [code]: (lawNotes[code] || []).map((n) => (n.id === id ? { ...n, review: !n.review } : n)),
-        });
-      };
-
-      const cycleNoteColor = (code, id) => {
-        saveLawNotes({
-          ...lawNotes,
-          [code]: (lawNotes[code] || []).map((n) => {
-            if (n.id !== id) return n;
-            const idx = NOTE_COLORS.findIndex((c) => c.key === (n.color || "none"));
-            const next = NOTE_COLORS[(idx + 1) % NOTE_COLORS.length];
-            return { ...n, color: next.key };
-          }),
-        });
-      };
-
-      // ---- Madde Haritası: fiş, olay, not ve içtihatları madde numarasına göre bağlar ----
       const articleIndex = useMemo(() => {
         const idx = {};
-        const add = (ref, kind, item) => {
-          if (!idx[ref]) idx[ref] = { cards: [], cases: [], notes: [], precedents: [] };
-          idx[ref][kind].push(item);
-        };
+        const add = (ref, kind, item) => { if (!idx[ref]) idx[ref] = { cards: [], cases: [], notes: [], precedents: [] }; idx[ref][kind].push(item); };
 
         cards.forEach((c) => {
-          const refs = new Set([
-            ...parseArticleRefs(c.statute, null),
-            ...parseArticleRefs(c.front, null),
-            ...parseArticleRefs(c.back, null),
-          ]);
+          const refs = new Set([...parseArticleRefs(c.statute, null), ...parseArticleRefs(c.front, null), ...parseArticleRefs(c.back, null)]);
           refs.forEach((r) => add(r, "cards", c));
         });
 
         cases.forEach((c) => {
-          const refs = new Set([
-            ...parseArticleRefs(c.statute, null),
-            ...parseArticleRefs(c.legalIssue, null),
-            ...parseArticleRefs(c.solution, null),
-          ]);
+          const refs = new Set([...parseArticleRefs(c.statute, null), ...parseArticleRefs(c.legalIssue, null), ...parseArticleRefs(c.solution, null)]);
           refs.forEach((r) => add(r, "cases", c));
         });
 
         Object.entries(lawNotes).forEach(([code, notes]) => {
           (notes || []).forEach((n) => {
-            const refs = new Set([
-              ...parseArticleRefs(n.madde, code),
-              ...parseArticleRefs(n.text, code),
-            ]);
+            const refs = new Set([...parseArticleRefs(n.madde, code), ...parseArticleRefs(n.text, code)]);
             refs.forEach((r) => add(r, "notes", { ...n, code }));
           });
         });
 
         precedents.forEach((p) => {
-          const refs = new Set([
-            ...parseArticleRefs(p.statute, null),
-            ...parseArticleRefs(p.summary, null),
-          ]);
+          const refs = new Set([...parseArticleRefs(p.statute, null), ...parseArticleRefs(p.summary, null)]);
           refs.forEach((r) => add(r, "precedents", p));
         });
 
@@ -883,15 +674,10 @@
 
       const articleRefList = useMemo(() => {
         const q = articleSearch.trim().toUpperCase().replace(/\s+/g, " ");
-        return Object.keys(articleIndex)
-          .filter((ref) => !q || ref.includes(q) || ref.replace(" ", "").includes(q.replace(" ", "")))
-          .sort(sortArticleRefs);
+        return Object.keys(articleIndex).filter((ref) => !q || ref.includes(q) || ref.replace(" ", "").includes(q.replace(" ", ""))).sort(sortArticleRefs);
       }, [articleIndex, articleSearch]);
 
-      const topics = useMemo(() => {
-        const set = new Set(cards.map((c) => c.topic));
-        return Array.from(set);
-      }, [cards]);
+      const topics = useMemo(() => { const set = new Set(cards.map((c) => c.topic)); return Array.from(set); }, [cards]);
 
       const topicStats = useMemo(() => {
         return topics.map((t) => {
@@ -901,128 +687,63 @@
         });
       }, [cards, topics]);
 
-      // "Bugün Ne Çalışmalıyım" odak modu için: en zayıf konular, tekrar işaretli notlar, bugünkü program
-      const weakestTopics = useMemo(() => {
-        return [...topicStats].filter((t) => t.count > 0).sort((a, b) => a.mastery - b.mastery).slice(0, 3);
-      }, [topicStats]);
+      const weakestTopics = useMemo(() => { return [...topicStats].filter((t) => t.count > 0).sort((a, b) => a.mastery - b.mastery).slice(0, 3); }, [topicStats]);
 
       const flaggedNotesList = useMemo(() => {
         const list = [];
-        Object.entries(lawNotes).forEach(([code, notes]) => {
-          (notes || []).forEach((n) => { if (n.review) list.push({ ...n, code }); });
-        });
+        Object.entries(lawNotes).forEach(([code, notes]) => { (notes || []).forEach((n) => { if (n.review) list.push({ ...n, code }); }); });
         return list;
       }, [lawNotes]);
 
       const todaysPlanCourses = weeklyPlan[todayWeekdayName] || [];
 
-      // ---- Genel Arama: tüm fiş, kaynak, olay, içtihat, sözlük ve kanun notunda tek kutudan arama ----
       const globalSearchResults = useMemo(() => {
         const q = globalQuery.trim().toLowerCase();
         if (!q) return null;
         const res = { cards: [], resources: [], cases: [], precedents: [], notes: [], dictionary: [] };
 
-        cards.forEach((c) => {
-          if ([c.topic, c.front, c.back, c.statute].filter(Boolean).join(" ").toLowerCase().includes(q)) res.cards.push(c);
-        });
-
-        Object.entries(resources).forEach(([course, list]) => {
-          (list || []).forEach((r) => {
-            if ([r.title, r.note, course].filter(Boolean).join(" ").toLowerCase().includes(q)) res.resources.push({ ...r, course });
-          });
-        });
-
-        cases.forEach((c) => {
-          if ([c.title, c.factPattern, c.legalIssue, c.solution, c.statute, c.course].filter(Boolean).join(" ").toLowerCase().includes(q)) res.cases.push(c);
-        });
-
-        precedents.forEach((p) => {
-          if ([p.court, p.caseNo, p.topic, p.statute, p.summary].filter(Boolean).join(" ").toLowerCase().includes(q)) res.precedents.push(p);
-        });
-
-        Object.entries(lawNotes).forEach(([code, list]) => {
-          (list || []).forEach((n) => {
-            if ([n.madde, n.text, code].filter(Boolean).join(" ").toLowerCase().includes(q)) res.notes.push({ ...n, code });
-          });
-        });
-        
-        dictionary.forEach((d) => {
-          if ([d.term, d.definition].filter(Boolean).join(" ").toLowerCase().includes(q)) res.dictionary.push(d);
-        });
+        cards.forEach((c) => { if ([c.topic, c.front, c.back, c.statute].filter(Boolean).join(" ").toLowerCase().includes(q)) res.cards.push(c); });
+        Object.entries(resources).forEach(([course, list]) => { (list || []).forEach((r) => { if ([r.title, r.note, course].filter(Boolean).join(" ").toLowerCase().includes(q)) res.resources.push({ ...r, course }); }); });
+        cases.forEach((c) => { if ([c.title, c.factPattern, c.legalIssue, c.solution, c.statute, c.course].filter(Boolean).join(" ").toLowerCase().includes(q)) res.cases.push(c); });
+        precedents.forEach((p) => { if ([p.court, p.caseNo, p.topic, p.statute, p.summary].filter(Boolean).join(" ").toLowerCase().includes(q)) res.precedents.push(p); });
+        Object.entries(lawNotes).forEach(([code, list]) => { (list || []).forEach((n) => { if ([n.madde, n.text, code].filter(Boolean).join(" ").toLowerCase().includes(q)) res.notes.push({ ...n, code }); }); });
+        dictionary.forEach((d) => { if ([d.term, d.definition].filter(Boolean).join(" ").toLowerCase().includes(q)) res.dictionary.push(d); });
 
         return res;
       }, [globalQuery, cards, resources, cases, precedents, lawNotes, dictionary]);
 
-      const globalResultCount = globalSearchResults
-        ? Object.values(globalSearchResults).reduce((s, arr) => s + arr.length, 0)
-        : 0;
+      const globalResultCount = globalSearchResults ? Object.values(globalSearchResults).reduce((s, arr) => s + arr.length, 0) : 0;
 
-      const goToCard = (card) => {
-        setTab("cards"); setQuizMode(false); setQuiz(null);
-        setSelectedTopic(card.topic || "Tümü");
-        setShowGlobalSearch(false); setShowFocusMode(false);
-      };
-      const goToResource = (course) => {
-        setTab("dersler"); setSelectedCourse(course);
-        setShowGlobalSearch(false); setShowFocusMode(false);
-      };
-      const goToCase = (c) => {
-        setTab("pratik"); setPratikSubTab("olaylar"); setOpenCaseId(c.id);
-        setShowGlobalSearch(false); setShowFocusMode(false);
-      };
-      const goToPrecedent = (p) => {
-        setTab("pratik"); setPratikSubTab("ictihat"); setOpenPrecedentId(p.id);
-        setShowGlobalSearch(false); setShowFocusMode(false);
-      };
-      const goToLawNote = (code) => {
-        setTab("kanunlar"); setLawSubTab("kanunlar"); setExpandedLaw(code); setOnlyFlaggedNotes(false);
-        setShowGlobalSearch(false); setShowFocusMode(false);
-      };
+      const goToCard = (card) => { setTab("cards"); setQuizMode(false); setQuiz(null); setSelectedTopic(card.topic || "Tümü"); setShowGlobalSearch(false); setShowFocusMode(false); };
+      const goToResource = (course) => { setTab("dersler"); setSelectedCourse(course); setShowGlobalSearch(false); setShowFocusMode(false); };
+      const goToCase = (c) => { setTab("pratik"); setPratikSubTab("olaylar"); setOpenCaseId(c.id); setShowGlobalSearch(false); setShowFocusMode(false); };
+      const goToPrecedent = (p) => { setTab("pratik"); setPratikSubTab("ictihat"); setOpenPrecedentId(p.id); setShowGlobalSearch(false); setShowFocusMode(false); };
+      const goToLawNote = (code) => { setTab("kanunlar"); setLawSubTab("kanunlar"); setExpandedLaw(code); setOnlyFlaggedNotes(false); setShowGlobalSearch(false); setShowFocusMode(false); };
 
       useEffect(() => {
         const pool = cards.filter((c) => selectedTopic === "Tümü" || c.topic === selectedTopic);
         const sorted = [...pool].sort((a, b) => a.level - b.level || (a.lastReviewed || "").localeCompare(b.lastReviewed || ""));
-        setQueueIds(sorted.map((c) => c.id));
-        setCursor(0);
-        setFlipped(false);
+        setQueueIds(sorted.map((c) => c.id)); setCursor(0); setFlipped(false);
       }, [selectedTopic, tab, cards]);
 
       const queue = queueIds.map((id) => cards.find((c) => c.id === id)).filter(Boolean);
       const current = queue[cursor % Math.max(queue.length, 1)];
 
-      useEffect(() => {
-        if (tab !== "cards" && "speechSynthesis" in window) window.speechSynthesis.cancel();
-      }, [tab]);
+      useEffect(() => { if (tab !== "cards" && "speechSynthesis" in window) window.speechSynthesis.cancel(); }, [tab]);
 
-      useEffect(() => {
-        if (!audioMode || quizMode || !current) return;
-        speak(flipped ? current.back : current.front);
-      }, [audioMode, flipped, current && current.id, quizMode]);
+      useEffect(() => { if (!audioMode || quizMode || !current) return; speak(flipped ? current.back : current.front); }, [audioMode, flipped, current && current.id, quizMode]);
 
       const rate = (delta) => {
         if (!current) return;
-        const next = cards.map((c) =>
-          c.id === current.id
-            ? { ...c, level: Math.max(0, Math.min(4, c.level + delta)), lastReviewed: new Date().toISOString() }
-            : c
-        );
-        saveCards(next);
-        setFlipped(false);
-        setCursor((c) => c + 1);
+        const next = cards.map((c) => c.id === current.id ? { ...c, level: Math.max(0, Math.min(4, c.level + delta)), lastReviewed: new Date().toISOString() } : c);
+        saveCards(next); setFlipped(false); setCursor((c) => c + 1);
       };
 
-      const deleteCard = (id) => {
-        if (!confirm("Bu fişi silmek istediğine emin misin?")) return;
-        saveCards(cards.filter((c) => c.id !== id));
-        showToast("Fiş silindi.");
-      };
+      const deleteCard = (id) => { if (!confirm("Bu fişi silmek istediğine emin misin?")) return; saveCards(cards.filter((c) => c.id !== id)); showToast("Fiş silindi."); };
 
       const startQuiz = () => {
         const pool = cards.filter((c) => selectedTopic === "Tümü" || c.topic === selectedTopic);
-        if (pool.length < 2) {
-          showToast("Deneme başlatmak için en az 2 fiş gerekli.");
-          return;
-        }
+        if (pool.length < 2) { showToast("Deneme başlatmak için en az 2 fiş gerekli."); return; }
         const shuffled = [...pool].sort(() => Math.random() - 0.5).slice(0, Math.min(10, pool.length));
         const questions = shuffled.map((c) => {
           const distractorPool = cards.filter((o) => o.id !== c.id && o.back !== c.back);
@@ -1030,8 +751,7 @@
           const options = [...distractors, c.back].sort(() => Math.random() - 0.5);
           return { cardId: c.id, front: c.front, correct: c.back, options };
         });
-        setQuiz({ questions, i: 0, score: 0, answered: false, picked: null, finished: false });
-        setQuizMode(true);
+        setQuiz({ questions, i: 0, score: 0, answered: false, picked: null, finished: false }); setQuizMode(true);
       };
 
       const answerQuiz = (opt) => {
@@ -1042,118 +762,48 @@
 
       const nextQuizQuestion = () => {
         if (!quiz) return;
-        if (quiz.i + 1 >= quiz.questions.length) {
-          setQuiz({ ...quiz, finished: true });
-        } else {
-          setQuiz({ ...quiz, i: quiz.i + 1, answered: false, picked: null });
-        }
+        if (quiz.i + 1 >= quiz.questions.length) { setQuiz({ ...quiz, finished: true }); }
+        else { setQuiz({ ...quiz, i: quiz.i + 1, answered: false, picked: null }); }
       };
 
-      const exitQuiz = () => {
-        setQuiz(null);
-        setQuizMode(false);
-      };
+      const exitQuiz = () => { setQuiz(null); setQuizMode(false); };
 
       const addCard = () => {
-        if (!form.topic.trim() || !form.front.trim() || !form.back.trim()) {
-          showToast("Tüm alanları doldurmalısın.");
-          return;
-        }
+        if (!form.topic.trim() || !form.front.trim() || !form.back.trim()) { showToast("Tüm alanları doldurmalısın."); return; }
         if (editingCardId) {
-          saveCards(cards.map((c) => (c.id === editingCardId
-            ? { ...c, topic: form.topic.trim(), front: form.front.trim(), back: form.back.trim(), statute: (form.statute || "").trim() }
-            : c)));
-          setEditingCardId(null);
-          setForm({ topic: "", front: "", back: "", statute: "" });
-          setShowAddForm(false);
-          showToast("Fiş güncellendi.");
-          return;
+          saveCards(cards.map((c) => (c.id === editingCardId ? { ...c, topic: form.topic.trim(), front: form.front.trim(), back: form.back.trim(), statute: (form.statute || "").trim() } : c)));
+          setEditingCardId(null); setForm({ topic: "", front: "", back: "", statute: "" }); setShowAddForm(false); showToast("Fiş güncellendi."); return;
         }
-        const newCard = {
-          id: uid(),
-          topic: form.topic.trim(),
-          front: form.front.trim(),
-          back: form.back.trim(),
-          statute: (form.statute || "").trim(),
-          level: 0,
-          lastReviewed: null,
-        };
-        saveCards([...cards, newCard]);
-        setForm({ topic: form.topic, front: "", back: "", statute: "" });
-        showToast("Yeni fiş eklendi!");
+        const newCard = { id: uid(), topic: form.topic.trim(), front: form.front.trim(), back: form.back.trim(), statute: (form.statute || "").trim(), level: 0, lastReviewed: null };
+        saveCards([...cards, newCard]); setForm({ topic: form.topic, front: "", back: "", statute: "" }); showToast("Yeni fiş eklendi!");
       };
 
-      const startEditCard = (card) => {
-        setEditingCardId(card.id);
-        setForm({ topic: card.topic, front: card.front, back: card.back, statute: card.statute || "" });
-        setShowAddForm(true);
-        setTab("topics");
-      };
-
-      const cancelCardEdit = () => {
-        setEditingCardId(null);
-        setForm({ topic: "", front: "", back: "", statute: "" });
-        setShowAddForm(false);
-      };
+      const startEditCard = (card) => { setEditingCardId(card.id); setForm({ topic: card.topic, front: card.front, back: card.back, statute: card.statute || "" }); setShowAddForm(true); setTab("topics"); };
+      const cancelCardEdit = () => { setEditingCardId(null); setForm({ topic: "", front: "", back: "", statute: "" }); setShowAddForm(false); };
 
       const addBulkCards = () => {
-        if (!bulkForm.topic.trim()) {
-          showToast("Önce bir ders/konu seç.");
-          return;
-        }
+        if (!bulkForm.topic.trim()) { showToast("Önce bir ders/konu seç."); return; }
         const lines = bulkForm.text.split("\n").map((l) => l.trim()).filter(Boolean);
-        const newCards = [];
-        let skipped = 0;
+        const newCards = []; let skipped = 0;
         lines.forEach((line) => {
-          const idx = line.indexOf("|");
-          if (idx === -1) { skipped++; return; }
-          const front = line.slice(0, idx).trim();
-          const back = line.slice(idx + 1).trim();
-          if (!front || !back) { skipped++; return; }
+          const idx = line.indexOf("|"); if (idx === -1) { skipped++; return; }
+          const front = line.slice(0, idx).trim(); const back = line.slice(idx + 1).trim(); if (!front || !back) { skipped++; return; }
           newCards.push({ id: uid(), topic: bulkForm.topic.trim(), front, back, statute: "", level: 0, lastReviewed: null });
         });
-        if (newCards.length === 0) {
-          showToast("Geçerli satır bulunamadı. Format: Soru | Cevap");
-          return;
-        }
-        saveCards([...cards, ...newCards]);
-        setBulkForm({ topic: bulkForm.topic, text: "" });
-        setShowBulkForm(false);
-        showToast(`${newCards.length} fiş eklendi${skipped ? `, ${skipped} satır atlandı` : ""}.`);
+        if (newCards.length === 0) { showToast("Geçerli satır bulunamadı. Format: Soru | Cevap"); return; }
+        saveCards([...cards, ...newCards]); setBulkForm({ topic: bulkForm.topic, text: "" }); setShowBulkForm(false); showToast(`${newCards.length} fiş eklendi${skipped ? `, ${skipped} satır atlandı` : ""}.`);
       };
 
-      const goBackToCourses = () => {
-        setSelectedCourse(null);
-        setShowResourceForm(false);
-        setExpandedResourceId(null);
-      };
+      const goBackToCourses = () => { setSelectedCourse(null); setShowResourceForm(false); setExpandedResourceId(null); };
 
       if (loading) return null;
 
       const COLORS = darkMode ? {
-        ink: "#1C2B4A",
-        parchment: "#12161F",
-        bordo: "#DD90A2",
-        gold: "#D8B36C",
-        charcoal: "#C7C0B0",
-        green: "#84B48B",
-        rust: "#DB8B67",
-        line: "#2C3542",
-        surface: "#1B212C",
-        track: "#29323D",
-        heading: "#EEE7D6",
+        ink: "#1C2B4A", parchment: "#12161F", bordo: "#DD90A2", gold: "#D8B36C", charcoal: "#C7C0B0",
+        green: "#84B48B", rust: "#DB8B67", line: "#2C3542", surface: "#1B212C", track: "#29323D", heading: "#EEE7D6",
       } : {
-        ink: "#1C2B4A",
-        parchment: "#F6F1E4",
-        bordo: "#7C2D3B",
-        gold: "#B8923F",
-        charcoal: "#2A2622",
-        green: "#4C6B4F",
-        rust: "#A6432F",
-        line: "#D9CFB8",
-        surface: "#fff",
-        track: "#EEE7D3",
-        heading: "#1C2B4A",
+        ink: "#1C2B4A", parchment: "#F6F1E4", bordo: "#7C2D3B", gold: "#B8923F", charcoal: "#2A2622",
+        green: "#4C6B4F", rust: "#A6432F", line: "#D9CFB8", surface: "#fff", track: "#EEE7D3", heading: "#1C2B4A",
       };
 
       return (
@@ -1162,31 +812,13 @@
           <style>{`
             * { box-sizing: border-box; }
             #print-sheet { display: none; }
-            @media print {
-              #app-shell { display: none !important; }
-              #print-sheet { display: block !important; }
-            }
-            .fiş-front, .fiş-back {
-              backface-visibility: hidden;
-              position: absolute;
-              inset: 0;
-              border-radius: 6px;
-              display: flex;
-              flex-direction: column;
-              justify-content: center;
-              padding: 24px 20px;
-            }
+            @media print { #app-shell { display: none !important; } #print-sheet { display: block !important; } }
+            .fiş-front, .fiş-back { backface-visibility: hidden; position: absolute; inset: 0; border-radius: 6px; display: flex; flex-direction: column; justify-content: center; padding: 24px 20px; }
             .fiş-back { transform: rotateY(180deg); }
-            .fiş-inner {
-              position: relative;
-              width: 100%;
-              height: 100%;
-              transition: transform 0.5s cubic-bezier(.2,.8,.2,1);
-              transform-style: preserve-3d;
-            }
+            .fiş-inner { position: relative; width: 100%; height: 100%; transition: transform 0.5s cubic-bezier(.2,.8,.2,1); transform-style: preserve-3d; }
             .fiş-inner.flipped { transform: rotateY(180deg); }
             button { font-family: inherit; cursor: pointer; }
-            input, textarea { font-family: inherit; }
+            input, textarea, select { font-family: inherit; }
             ::-webkit-scrollbar { display: none; }
           `}</style>
 
@@ -1202,6 +834,10 @@
                 </div>
               </div>
               <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
+                <button onClick={() => setShowPomodoro(true)} style={{ background: COLORS.surface, border: `1px solid ${COLORS.line}`, borderRadius: 8, width: 36, height: 36, fontSize: 15, position: "relative" }}>
+                  ⏳
+                  {pomoIsRunning && <span style={{position:"absolute", top:-3, right:-3, width:10, height:10, background:COLORS.rust, borderRadius:999, border:`2px solid ${COLORS.surface}`}}></span>}
+                </button>
                 <button onClick={() => setDarkMode(!darkMode)} style={{ background: COLORS.surface, border: `1px solid ${COLORS.line}`, borderRadius: 8, width: 36, height: 36, fontSize: 15 }}>
                   {darkMode ? "☀️" : "🌙"}
                 </button>
@@ -1261,7 +897,40 @@
             </div>
           </div>
 
-          {/* Ayarlar Paneli (Yedekle / Geri Yükle / Sınav Tarihleri) */}
+          {/* Pomodoro Modal */}
+          {showPomodoro && (
+            <div style={{ position: "fixed", inset: 0, background: "rgba(28,43,74,0.6)", zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }} onClick={() => setShowPomodoro(false)}>
+              <div onClick={(e) => e.stopPropagation()} style={{ background: COLORS.parchment, borderRadius: 16, padding: "24px 20px", width: "100%", maxWidth: 320, textAlign: "center", boxShadow: "0 10px 30px rgba(0,0,0,0.2)" }}>
+                <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: -10 }}>
+                  <button onClick={() => setShowPomodoro(false)} style={{ background: "none", border: "none", fontSize: 20, color: COLORS.bordo }}>✕</button>
+                </div>
+                
+                <div style={{ display: "flex", gap: 6, marginBottom: 20, background: COLORS.surface, padding: 4, borderRadius: 8, border: `1px solid ${COLORS.line}` }}>
+                  <button onClick={() => resetPomodoro("work")} style={{ flex: 1, padding: "8px 0", borderRadius: 6, fontSize: 12.5, fontWeight: 600, border: "none", background: pomoMode === "work" ? COLORS.bordo : "transparent", color: pomoMode === "work" ? "#fff" : COLORS.charcoal }}>Çalışma</button>
+                  <button onClick={() => resetPomodoro("break")} style={{ flex: 1, padding: "8px 0", borderRadius: 6, fontSize: 12.5, fontWeight: 600, border: "none", background: pomoMode === "break" ? COLORS.bordo : "transparent", color: pomoMode === "break" ? "#fff" : COLORS.charcoal }}>Mola</button>
+                </div>
+                
+                <div style={{ fontSize: 13, color: COLORS.charcoal, opacity: 0.8, marginBottom: 10, fontWeight: 500 }}>
+                  {pomoMode === "work" ? "Odaklanma vakti geldi 📚" : "Kısa bir nefes al ☕"}
+                </div>
+                
+                <div style={{ fontFamily: "'Fraunces', serif", fontSize: 64, fontWeight: 700, color: COLORS.heading, margin: "10px 0 24px", lineHeight: 1, letterSpacing: -1 }}>
+                  {formatPomoTime()}
+                </div>
+                
+                <div style={{ display: "flex", gap: 10 }}>
+                  <button onClick={() => setPomoIsRunning(!pomoIsRunning)} style={{ flex: 2, padding: "14px 0", borderRadius: 8, border: "none", background: pomoIsRunning ? COLORS.gold : COLORS.ink, color: pomoIsRunning ? COLORS.ink : "#fff", fontWeight: 700, fontSize: 15 }}>
+                    {pomoIsRunning ? "Duraklat" : "Başla"}
+                  </button>
+                  <button onClick={() => resetPomodoro(pomoMode)} style={{ flex: 1, padding: "14px 0", borderRadius: 8, border: `1px solid ${COLORS.line}`, background: COLORS.surface, color: COLORS.charcoal, fontWeight: 600, fontSize: 14 }}>
+                    Sıfırla
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Ayarlar Paneli */}
           {showSettings && (
             <div style={{ position: "fixed", inset: 0, background: "rgba(28,43,74,0.5)", zIndex: 200, display: "flex", alignItems: "flex-end" }} onClick={() => setShowSettings(false)}>
               <div onClick={(e) => e.stopPropagation()} style={{ background: COLORS.parchment, width: "100%", borderRadius: "16px 16px 0 0", padding: "20px", maxHeight: "85vh", overflowY: "auto" }}>
@@ -1425,16 +1094,21 @@
                   <button onClick={() => setShowFocusMode(false)} style={{ background: "none", border: "none", fontSize: 20, color: COLORS.bordo }}>✕</button>
                 </div>
                 <div style={{ fontSize: 11.5, color: COLORS.bordo, opacity: 0.8, marginBottom: 16 }}>
-                  Zayıf konuların, tekrar işaretli notların ve bugünkü programın tek yerde.
+                  Günün ders programı, zayıf konuların ve tekrar işaretli notların tek yerde.
                 </div>
 
                 {todaysPlanCourses.length > 0 && (
                   <div style={{ marginBottom: 18 }}>
                     <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: 0.6, color: COLORS.bordo, marginBottom: 8 }}>🗓️ BUGÜNKÜ PROGRAMIN</div>
                     <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
-                      {todaysPlanCourses.map((course) => (
-                        <button key={course} onClick={() => goToResource(course)} style={{ textAlign: "left", background: COLORS.surface, border: `1px solid ${COLORS.line}`, borderRadius: 6, padding: "11px 13px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                          <span style={{ fontSize: 13, fontWeight: 600, color: COLORS.heading }}>{course}</span>
+                      {todaysPlanCourses.sort((a,b)=>a.time.localeCompare(b.time)).map((item) => (
+                        <button key={item.id} onClick={() => goToResource(item.course)} style={{ textAlign: "left", background: COLORS.surface, border: `1px solid ${COLORS.line}`, borderRadius: 6, padding: "11px 13px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                          <div>
+                            <div style={{ fontSize: 11, fontWeight: 700, color: COLORS.bordo, marginBottom: 2 }}>
+                              {item.time || "--:--"} {item.location ? `· ${item.location}` : ""}
+                            </div>
+                            <div style={{ fontSize: 13, fontWeight: 600, color: COLORS.heading }}>{item.course}</div>
+                          </div>
                           <span style={{ color: COLORS.bordo, fontSize: 15 }}>→</span>
                         </button>
                       ))}
@@ -2252,7 +1926,7 @@
             </div>
           )}
 
-          {/* ---- TOPICS TAB ---- */}
+          {/* ---- TOPICS TAB (Detaylı Haftalık Program) ---- */}
           {tab === "topics" && (
             <div style={{ padding: "18px 20px" }}>
               <div style={{ fontFamily: "'Fraunces', serif", fontSize: 18, color: COLORS.heading, marginBottom: 14 }}>Konularım</div>
@@ -2280,8 +1954,8 @@
                 </div>
               </div>
 
-              {/* Haftalık Program */}
-              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.6, color: COLORS.bordo, marginBottom: 8 }}>🗓️ HAFTALIK PROGRAM</div>
+              {/* Gelişmiş Haftalık Program */}
+              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.6, color: COLORS.bordo, marginBottom: 8 }}>🗓️ HAFTALIK PROGRAM & AMFİ TAKİBİ</div>
               <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 22 }}>
                 {WEEKDAY_ORDER.map((day) => {
                   const isToday = day === todayWeekdayName;
@@ -2295,19 +1969,28 @@
                           {isToday && <span style={{ fontSize: 8.5, fontWeight: 700, color: "#fff", background: COLORS.bordo, borderRadius: 999, padding: "2px 6px" }}>BUGÜN</span>}
                         </div>
                         <span style={{ fontSize: 10.5, color: COLORS.bordo, maxWidth: 160, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                          {assigned.length > 0 ? assigned.join(", ") : "boş"}
+                          {assigned.length > 0 ? `${assigned.length} Ders` : "boş"}
                         </span>
                       </button>
+                      
                       {open && (
-                        <div style={{ padding: "0 14px 12px", display: "flex", flexWrap: "wrap", gap: 6 }}>
-                          {COURSES.map((c) => (
-                            <button key={c} onClick={() => toggleDayCourse(day, c)} style={{
-                              padding: "5px 10px", borderRadius: 999, fontSize: 11, fontWeight: 600,
-                              border: `1px solid ${assigned.includes(c) ? COLORS.bordo : COLORS.line}`,
-                              background: assigned.includes(c) ? COLORS.bordo : "transparent",
-                              color: assigned.includes(c) ? "#fff" : COLORS.charcoal,
-                            }}>{c}</button>
+                        <div style={{ padding: "0 14px 12px", display: "flex", flexDirection: "column", gap: 10 }}>
+                          {assigned.sort((a,b)=>a.time.localeCompare(b.time)).map((item) => (
+                            <div key={item.id} style={{ display: "flex", flexDirection: "column", gap: 6, padding: "10px", background: COLORS.parchment, borderRadius: 6, border: `1px solid ${COLORS.line}` }}>
+                              <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                                <input type="time" value={item.time} onChange={(e) => updateScheduleItem(day, item.id, 'time', e.target.value)} style={{ padding: "6px", borderRadius: 4, border: `1px solid ${COLORS.line}`, background: COLORS.surface, color: COLORS.heading, fontSize: 12, flexShrink: 0 }} />
+                                <select value={item.course} onChange={(e) => updateScheduleItem(day, item.id, 'course', e.target.value)} style={{ flex: 1, padding: "6px", borderRadius: 4, border: `1px solid ${COLORS.line}`, background: COLORS.surface, color: COLORS.heading, fontSize: 12 }}>
+                                  {COURSES.map(c => <option key={c} value={c}>{c}</option>)}
+                                </select>
+                                <button onClick={() => removeScheduleItem(day, item.id)} style={{ background: "none", border: "none", color: COLORS.rust, padding: "4px 8px", fontSize: 16, fontWeight: 700 }}>✕</button>
+                              </div>
+                              <input type="text" placeholder="Derslik (Örn: Hukuk Fakültesi Amfi 1)" value={item.location} onChange={(e) => updateScheduleItem(day, item.id, 'location', e.target.value)} style={{ width: "100%", padding: "6px 8px", borderRadius: 4, border: `1px solid ${COLORS.line}`, background: COLORS.surface, color: COLORS.heading, fontSize: 12 }} />
+                            </div>
                           ))}
+                          
+                          <button onClick={() => addScheduleItem(day)} style={{ width: "100%", padding: "8px 0", borderRadius: 6, border: `1px dashed ${COLORS.bordo}`, background: "transparent", color: COLORS.bordo, fontWeight: 600, fontSize: 12.5 }}>
+                            + Derse Ekle
+                          </button>
                         </div>
                       )}
                     </div>
@@ -2420,7 +2103,7 @@
               ["cards", "Kartlar"],
               ["pratik", "Pratik"],
               ["sozluk", "Sözlük"],
-              ["topics", "Konular"],
+              ["topics", "Program"],
             ].map(([key, label]) => (
               <button key={key} onClick={() => { setTab(key); if (key !== "dersler") { setSelectedCourse(null); } if (key !== "cards") { setQuizMode(false); setQuiz(null); } }} style={{ flex: 1, background: "none", border: "none", fontSize: 10.5, fontWeight: 600, color: tab === key ? COLORS.bordo : "#9A9382", padding: "4px 0" }}>
                 {label}
