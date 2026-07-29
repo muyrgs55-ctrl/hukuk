@@ -123,6 +123,12 @@
       },
     ];
 
+    const SEED_DICTIONARY = [
+      { id: uid(), term: "Müteselsil Sorumluluk", definition: "Birden fazla borçlunun, borcun tamamından zincirleme olarak sorumlu olması durumu." },
+      { id: uid(), term: "Zilyetlik", definition: "Bir eşya üzerinde fiili hakimiyet kurma durumu." },
+      { id: uid(), term: "İlliyet Bağı", definition: "Neden-sonuç ilişkisi. Haksız fiillerde zarar ile fiil arasındaki bağ." },
+    ];
+
     // Gün Hesaplama Fonksiyonu
     const getDaysLeft = (targetDateStr) => {
       const now = new Date();
@@ -204,6 +210,7 @@
       const [cases, setCases] = useState([]);
       const [lawNotes, setLawNotes] = useState({});
       const [precedents, setPrecedents] = useState([]);
+      const [dictionary, setDictionary] = useState([]); // Sözlük State
 
       const [tab, setTab] = useState("dersler");
       const [lawSubTab, setLawSubTab] = useState("kanunlar");
@@ -262,6 +269,12 @@
       const [editingPrecedentId, setEditingPrecedentId] = useState(null);
       const [precedentSearch, setPrecedentSearch] = useState("");
       const [toast, setToast] = useState(null);
+
+      // Sözlük Form State
+      const [showDictForm, setShowDictForm] = useState(false);
+      const [dictForm, setDictForm] = useState({ term: "", definition: "" });
+      const [editingDictId, setEditingDictId] = useState(null);
+      const [dictSearch, setDictSearch] = useState("");
 
       // Sınav Tarihleri Hesaplaması — kullanıcı Ayarlar'dan değiştirmediyse varsayılan tarihler kullanılır
       const currentYear = new Date().getFullYear();
@@ -336,6 +349,7 @@
           let loadedExamDates = { vize: "", final: "" };
           let loadedWeeklyPlan = {};
           let loadedPrecedents = [];
+          let loadedDictionary = SEED_DICTIONARY;
 
           try {
             const c = await storageAdapter.get("cards");
@@ -371,6 +385,11 @@
             const pr = await storageAdapter.get("precedents");
             if (pr && pr.value) loadedPrecedents = JSON.parse(pr.value);
           } catch (e) {}
+          
+          try {
+            const dict = await storageAdapter.get("dictionary");
+            if (dict && dict.value) loadedDictionary = JSON.parse(dict.value);
+          } catch (e) {}
 
           let loadedAudioMode = false;
           try {
@@ -397,6 +416,7 @@
           setExamDates(loadedExamDates);
           setWeeklyPlan(loadedWeeklyPlan);
           setPrecedents(loadedPrecedents);
+          setDictionary(loadedDictionary);
           setAudioMode(loadedAudioMode);
           setDarkModeState(loadedDarkMode);
           setGrades(loadedGrades);
@@ -447,6 +467,43 @@
         setPrecedents(next);
         await storageAdapter.set("precedents", JSON.stringify(next));
       }, []);
+      
+      const saveDictionary = useCallback(async (next) => {
+        setDictionary(next);
+        await storageAdapter.set("dictionary", JSON.stringify(next));
+      }, []);
+
+      // ---- Sözlük CRUD ----
+      const addDictTerm = () => {
+        if (!dictForm.term.trim() || !dictForm.definition.trim()) {
+          showToast("Terim ve açıklama gerekli."); return;
+        }
+        if (editingDictId) {
+          saveDictionary(dictionary.map(d => d.id === editingDictId ? { ...d, term: dictForm.term.trim(), definition: dictForm.definition.trim() } : d));
+          setEditingDictId(null);
+          setDictForm({ term: "", definition: "" });
+          setShowDictForm(false);
+          showToast("Terim güncellendi.");
+          return;
+        }
+        const newTerm = { id: uid(), term: dictForm.term.trim(), definition: dictForm.definition.trim() };
+        saveDictionary([...dictionary, newTerm].sort((a,b) => a.term.localeCompare(b.term, "tr")));
+        setDictForm({ term: "", definition: "" });
+        setShowDictForm(false);
+        showToast("Terim eklendi.");
+      };
+
+      const startEditDict = (d) => {
+        setEditingDictId(d.id);
+        setDictForm({ term: d.term, definition: d.definition });
+        setShowDictForm(true);
+      };
+
+      const deleteDictTerm = (id) => {
+        if (!confirm("Bu terimi silmek istediğine emin misin?")) return;
+        saveDictionary(dictionary.filter(d => d.id !== id));
+        showToast("Terim silindi.");
+      };
 
       const addPrecedent = () => {
         if (!precedentForm.summary.trim()) {
@@ -569,7 +626,7 @@
           app: "muzo-hukuk",
           version: 1,
           exportedAt: new Date().toISOString(),
-          cards, resources, cases, lawNotes, examDates, weeklyPlan, precedents, grades,
+          cards, resources, cases, lawNotes, examDates, weeklyPlan, precedents, grades, dictionary,
         };
         const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
         const url = URL.createObjectURL(blob);
@@ -602,6 +659,7 @@
             if (data.weeklyPlan) await saveWeeklyPlan(data.weeklyPlan);
             if (data.precedents) await savePrecedents(data.precedents);
             if (data.grades) await saveGrades(data.grades);
+            if (data.dictionary) await saveDictionary(data.dictionary);
             showToast("Yedek geri yüklendi!");
             setShowSettings(false);
           } catch (err) {
@@ -858,11 +916,11 @@
 
       const todaysPlanCourses = weeklyPlan[todayWeekdayName] || [];
 
-      // ---- Genel Arama: tüm fiş, kaynak, olay, içtihat ve kanun notunda tek kutudan arama ----
+      // ---- Genel Arama: tüm fiş, kaynak, olay, içtihat, sözlük ve kanun notunda tek kutudan arama ----
       const globalSearchResults = useMemo(() => {
         const q = globalQuery.trim().toLowerCase();
         if (!q) return null;
-        const res = { cards: [], resources: [], cases: [], precedents: [], notes: [] };
+        const res = { cards: [], resources: [], cases: [], precedents: [], notes: [], dictionary: [] };
 
         cards.forEach((c) => {
           if ([c.topic, c.front, c.back, c.statute].filter(Boolean).join(" ").toLowerCase().includes(q)) res.cards.push(c);
@@ -887,9 +945,13 @@
             if ([n.madde, n.text, code].filter(Boolean).join(" ").toLowerCase().includes(q)) res.notes.push({ ...n, code });
           });
         });
+        
+        dictionary.forEach((d) => {
+          if ([d.term, d.definition].filter(Boolean).join(" ").toLowerCase().includes(q)) res.dictionary.push(d);
+        });
 
         return res;
-      }, [globalQuery, cards, resources, cases, precedents, lawNotes]);
+      }, [globalQuery, cards, resources, cases, precedents, lawNotes, dictionary]);
 
       const globalResultCount = globalSearchResults
         ? Object.values(globalSearchResults).reduce((s, arr) => s + arr.length, 0)
@@ -1251,14 +1313,14 @@
             <div style={{ position: "fixed", inset: 0, background: "rgba(28,43,74,0.5)", zIndex: 200, display: "flex", alignItems: "flex-start" }} onClick={() => setShowGlobalSearch(false)}>
               <div onClick={(e) => e.stopPropagation()} style={{ background: COLORS.parchment, width: "100%", borderRadius: "0 0 16px 16px", padding: "20px", maxHeight: "90vh", overflowY: "auto" }}>
                 <div style={{ display: "flex", gap: 10, alignItems: "center", marginBottom: 14 }}>
-                  <input autoFocus placeholder="Fiş, kaynak, olay, içtihat, kanun notu ara..." value={globalQuery} onChange={(e) => setGlobalQuery(e.target.value)}
+                  <input autoFocus placeholder="Fiş, kaynak, olay, içtihat, sözlük..." value={globalQuery} onChange={(e) => setGlobalQuery(e.target.value)}
                     style={{ flex: 1, padding: "11px 13px", borderRadius: 8, border: `1px solid ${COLORS.line}`, fontSize: 14, background: COLORS.surface }} />
                   <button onClick={() => setShowGlobalSearch(false)} style={{ background: "none", border: "none", fontSize: 20, color: COLORS.bordo, flexShrink: 0 }}>✕</button>
                 </div>
 
                 {!globalSearchResults && (
                   <div style={{ textAlign: "center", padding: "30px 10px", color: COLORS.bordo, opacity: 0.7, fontSize: 12.5 }}>
-                    Yazmaya başla — fişler, kaynaklar, olaylar, içtihatlar ve kanun notları aynı anda taranır.
+                    Yazmaya başla — fişler, kaynaklar, olaylar, içtihatlar, sözlük ve kanun notları aynı anda taranır.
                   </div>
                 )}
 
@@ -1317,6 +1379,19 @@
                             <button key={p.id} onClick={() => goToPrecedent(p)} style={{ textAlign: "left", background: COLORS.surface, border: `1px solid ${COLORS.line}`, borderRadius: 6, padding: "10px 12px" }}>
                               <div style={{ fontSize: 10, fontWeight: 700, color: COLORS.bordo }}>{p.court}{p.caseNo ? ` · ${p.caseNo}` : ""}</div>
                               <div style={{ fontSize: 13, fontWeight: 600, color: COLORS.heading, marginTop: 2 }}>{p.topic || p.summary.slice(0, 60)}</div>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {globalSearchResults.dictionary && globalSearchResults.dictionary.length > 0 && (
+                      <div>
+                        <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: 0.6, color: COLORS.bordo, marginBottom: 7 }}>📖 SÖZLÜK</div>
+                        <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
+                          {globalSearchResults.dictionary.map((d) => (
+                            <button key={d.id} onClick={() => { setTab("sozluk"); setDictSearch(d.term); setShowGlobalSearch(false); }} style={{ textAlign: "left", background: COLORS.surface, border: `1px solid ${COLORS.line}`, borderRadius: 6, padding: "10px 12px" }}>
+                              <div style={{ fontSize: 13, fontWeight: 700, color: COLORS.heading }}>{d.term}</div>
+                              <div style={{ fontSize: 12, color: COLORS.charcoal, marginTop: 2 }}>{d.definition}</div>
                             </button>
                           ))}
                         </div>
@@ -1553,6 +1628,59 @@
                   </div>
                 </div>
               )}
+            </div>
+          )}
+
+          {/* ---- SÖZLÜK TAB ---- */}
+          {tab === "sozluk" && (
+            <div style={{ padding: "18px 20px" }}>
+              <div style={{ fontFamily: "'Fraunces', serif", fontSize: 18, color: COLORS.heading, marginBottom: 14 }}>Hukuk Sözlüğü</div>
+              <div style={{ fontSize: 12, color: COLORS.bordo, opacity: 0.8, marginBottom: 14 }}>
+                Hukuki terimleri ve anlamlarını burada toplayabilirsin.
+              </div>
+
+              <input
+                placeholder="Terim veya anlam ara..."
+                value={dictSearch}
+                onChange={(e) => setDictSearch(e.target.value)}
+                style={{ width: "100%", padding: "10px 12px", borderRadius: 6, border: `1px solid ${COLORS.line}`, marginBottom: 14, fontSize: 13, background: COLORS.surface }}
+              />
+
+              {!showDictForm ? (
+                <button onClick={() => setShowDictForm(true)} style={{ width: "100%", padding: "13px 0", borderRadius: 6, border: `1px dashed ${COLORS.bordo}`, background: "transparent", color: COLORS.bordo, fontWeight: 600, fontSize: 13.5, marginBottom: 14 }}>
+                  + Yeni Terim Ekle
+                </button>
+              ) : (
+                <div style={{ background: COLORS.surface, border: `1px solid ${COLORS.line}`, borderRadius: 6, padding: 16, marginBottom: 14 }}>
+                  <div style={{ fontWeight: 600, fontSize: 13.5, color: COLORS.heading, marginBottom: 10 }}>{editingDictId ? "Terimi Düzenle" : "Yeni Terim"}</div>
+                  <input placeholder="Terim (örn. İlliyet Bağı)" value={dictForm.term} onChange={(e) => setDictForm({ ...dictForm, term: e.target.value })} style={{ width: "100%", padding: "10px 12px", borderRadius: 5, border: `1px solid ${COLORS.line}`, marginBottom: 8, fontSize: 13.5 }} />
+                  <textarea placeholder="Anlamı / Açıklaması" value={dictForm.definition} onChange={(e) => setDictForm({ ...dictForm, definition: e.target.value })} style={{ width: "100%", padding: "10px 12px", borderRadius: 5, border: `1px solid ${COLORS.line}`, marginBottom: 12, fontSize: 13.5, minHeight: 60, resize: "vertical" }} />
+                  <div style={{ display: "flex", gap: 8 }}>
+                    <button onClick={addDictTerm} style={{ flex: 1, padding: "11px 0", borderRadius: 5, border: "none", background: COLORS.ink, color: "#fff", fontWeight: 600, fontSize: 13.5 }}>{editingDictId ? "Güncelle" : "Kaydet"}</button>
+                    <button onClick={() => { setEditingDictId(null); setDictForm({ term: "", definition: "" }); setShowDictForm(false); }} style={{ flex: 1, padding: "11px 0", borderRadius: 5, border: `1px solid ${COLORS.line}`, background: "transparent", color: COLORS.charcoal, fontSize: 13.5 }}>İptal</button>
+                  </div>
+                </div>
+              )}
+
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                {dictionary
+                  .filter(d => !dictSearch || d.term.toLowerCase().includes(dictSearch.toLowerCase()) || d.definition.toLowerCase().includes(dictSearch.toLowerCase()))
+                  .map(d => (
+                    <div key={d.id} style={{ background: COLORS.surface, border: `1px solid ${COLORS.line}`, borderRadius: 6, padding: "12px 14px" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 4 }}>
+                        <div style={{ fontFamily: "'Fraunces', serif", fontSize: 15, fontWeight: 700, color: COLORS.heading }}>{d.term}</div>
+                        <div style={{ display: "flex", gap: 10 }}>
+                          <button onClick={() => startEditDict(d)} style={{ background: "none", border: "none", fontSize: 11, color: COLORS.bordo, opacity: 0.65, padding: 0 }}>düzenle</button>
+                          <button onClick={() => deleteDictTerm(d.id)} style={{ background: "none", border: "none", fontSize: 11, color: COLORS.bordo, opacity: 0.5, padding: 0 }}>sil</button>
+                        </div>
+                      </div>
+                      <div style={{ fontSize: 13, color: COLORS.charcoal, lineHeight: 1.45 }}>{d.definition}</div>
+                    </div>
+                ))}
+                {dictionary.length > 0 && dictionary.filter(d => !dictSearch || d.term.toLowerCase().includes(dictSearch.toLowerCase()) || d.definition.toLowerCase().includes(dictSearch.toLowerCase())).length === 0 && (
+                  <div style={{ textAlign: "center", padding: "20px", color: COLORS.bordo, fontSize: 12.5 }}>Aranan terim bulunamadı.</div>
+                )}
+              </div>
             </div>
           )}
 
@@ -2291,9 +2419,10 @@
               ["kanunlar", "Kanunlar"],
               ["cards", "Kartlar"],
               ["pratik", "Pratik"],
+              ["sozluk", "Sözlük"],
               ["topics", "Konular"],
             ].map(([key, label]) => (
-              <button key={key} onClick={() => { setTab(key); if (key !== "dersler") { setSelectedCourse(null); } if (key !== "cards") { setQuizMode(false); setQuiz(null); } }} style={{ flex: 1, background: "none", border: "none", fontSize: 11.5, fontWeight: 600, color: tab === key ? COLORS.bordo : "#9A9382", padding: "4px 0" }}>
+              <button key={key} onClick={() => { setTab(key); if (key !== "dersler") { setSelectedCourse(null); } if (key !== "cards") { setQuizMode(false); setQuiz(null); } }} style={{ flex: 1, background: "none", border: "none", fontSize: 10.5, fontWeight: 600, color: tab === key ? COLORS.bordo : "#9A9382", padding: "4px 0" }}>
                 {label}
               </button>
             ))}
