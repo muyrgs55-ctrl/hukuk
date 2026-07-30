@@ -1,0 +1,64 @@
+{
+  "name": "Muzo Hukuk — 3. Sınıf",
+  "short_name": "Muzo Hukuk",
+  "description": "Hukuk fakültesi 3. sınıf ders kaynakları, fişler, kanun notları ve sınav pratikleri.",
+  "lang": "tr",
+  "dir": "ltr",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#F6F1E4",
+  "theme_color": "#1C2B4A",
+  "categories": ["education", "productivity"],
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "share_target": {
+    "action": "./index.html",
+    "method": "GET",
+    "enctype": "application/x-www-form-urlencoded",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  },
+  "shortcuts": [
+    {
+      "name": "Fiş Çalış",
+      "short_name": "Fişler",
+      "url": "./index.html?tab=cards",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Odak Sayacı",
+      "short_name": "Odak",
+      "url": "./index.html?tab=pomodoro",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Kanun Notları",
+      "short_name": "Kanunlar",
+      "url": "./index.html?tab=kanunlar",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}
